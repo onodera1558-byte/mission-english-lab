@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mission English Lab</title>
+<style>
+:root{--bg:#eef9ff;--panel:#fff;--panel2:#e6f7ff;--line:#b8dff2;--text:#17324c;--muted:#4d6b83;--cyan:#69dcf3;--gold:#ffe19a;--green:#b9f2ce;--red:#ffd2d2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#17304c 0,#071321 58%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6;font-size:18px}
+button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid #3b5876;background:#1b3550;color:var(--text);border-radius:12px;padding:10px 14px;font-weight:650}button:hover{filter:brightness(1.15)}button.primary{background:var(--cyan);color:#052033;border-color:var(--cyan)}button.gold{background:var(--gold);color:#32210a;border-color:var(--gold)}button.ghost{background:transparent}button.small{padding:6px 10px;font-size:.9rem}
+header{position:sticky;top:0;z-index:10;background:#ffffffed;border-bottom:2px solid #b8e8fa;backdrop-filter:blur(10px)}
+.top{max-width:1100px;margin:auto;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{display:flex;gap:10px;align-items:center;font-weight:850;letter-spacing:.03em}.logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(145deg,#fff0a9,#75e1f6);display:grid;place-items:center;color:#052033;font-size:25px;box-shadow:0 3px 0 #a8d9ec}.brand small{display:block;color:var(--muted);font-weight:500;font-size:.85rem;letter-spacing:0}
+nav{display:flex;gap:7px;flex-wrap:wrap}nav button{padding:8px 11px;font-size:1rem}
+main{max-width:1100px;margin:auto;padding:22px 18px 55px}.eyebrow{color:var(--cyan);font-weight:800;font-size:.9rem;letter-spacing:.14em;text-transform:uppercase}h1{font-size:clamp(2rem,4vw,2.8rem);line-height:1.15;margin:.35rem 0 .6rem}h2{font-size:1.45rem;margin:0 0 12px}h3{font-size:1.2rem;margin:0 0 8px}.sub{color:var(--muted);margin:0 0 20px}.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:15px}.card{background:linear-gradient(145deg,#fff,#f2faff);border:2px solid var(--line);border-radius:22px;padding:22px;min-width:0;box-shadow:0 5px 0 #d3eaf7}.span8{grid-column:span 8}.span7{grid-column:span 7}.span6{grid-column:span 6}.span5{grid-column:span 5}.span4{grid-column:span 4}.span12{grid-column:span 12}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.stat{background:#0b1a2a;border:1px solid var(--line);border-radius:14px;padding:12px}.stat b{font-size:1.6rem;display:block}.stat span{font-size:.95rem;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;border:1px solid #3c627e;border-radius:999px;padding:3px 9px;font-size:.9rem;color:var(--cyan)}.badge.done{color:var(--green);border-color:#397b61}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.mission{display:flex;gap:14px;align-items:flex-start}.mission-icon{flex:0 0 58px;width:58px;height:58px;display:grid;place-items:center;background:linear-gradient(145deg,#1f4b6b,#17263a);border:1px solid #3e6c89;border-radius:15px;font-size:28px}.mission p{margin:4px 0;color:var(--muted);font-size:1rem}
+label{display:block;font-size:1rem;font-weight:750;margin:12px 0 5px;color:#d8e8f8}input,textarea,select{width:100%;background:#fff;border:2px solid #b8d9ed;color:var(--text);border-radius:12px;padding:13px 14px;outline:none;font-size:1rem}input:focus,textarea:focus,select:focus{border-color:var(--cyan)}textarea{min-height:100px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{font-size:1rem;color:var(--muted)}.warning{background:#352a1a;border:1px solid #8a6c36;border-radius:12px;padding:11px 13px;color:#ffe0a6;font-size:1rem}.success{background:#102c27;border:1px solid #34745f;border-radius:12px;padding:11px 13px;color:#b9f5d3}.empty{padding:24px;text-align:center;border:1px dashed #36516c;border-radius:14px;color:var(--muted)}
+.video-wrap{aspect-ratio:16/9;background:#02070d;border-radius:13px;overflow:hidden;border:1px solid var(--line)}.video-wrap iframe{width:100%;height:100%;border:0}.sentence{border:2px solid var(--line);border-radius:18px;padding:18px;background:#fff;margin:12px 0;box-shadow:0 3px 0 #dceef8}.sentence .en{font-size:1.35rem;font-weight:800;line-height:1.35}.sentence .ja{color:#d4e3f4;margin-top:9px;font-size:1.1rem}.sentence .word{display:inline-flex;flex-direction:column;gap:1px;background:#1a3048;border-radius:10px;padding:8px 10px;margin:4px 5px 0 0}.word b{color:var(--cyan)}.word span{font-size:.98rem;color:var(--muted)}
+.quiz-option{display:block;width:100%;text-align:left;margin:9px 0;background:#0b1a2b;font-size:1.1rem;padding:13px 15px}.quiz-feedback{font-size:1.15rem;font-weight:800;padding:13px 15px;border-radius:12px;margin-top:12px;line-height:1.55;border:2px solid}.quiz-feedback.correct-feedback{color:#b9f5d3;background:#102f27;border-color:#4da982}.quiz-feedback.wrong-feedback{color:#ffd0d0;background:#3a2027;border-color:#b65e6a}.quiz-feedback .feedback-title{font-size:1.3rem;display:block;margin-bottom:4px}.quiz-option.correct{border-color:var(--green);background:#12352b}.quiz-option.wrong{border-color:var(--red);background:#3b2026}.progress{height:8px;background:#091625;border-radius:999px;overflow:hidden;margin:10px 0}.progress div{height:100%;background:linear-gradient(90deg,#4ab6d4,#8ce5b2);width:0;transition:width .25s}
+footer{max-width:1100px;margin:auto;padding:0 18px 28px;color:var(--muted);font-size:.8rem}
+.hidden{display:none!important}.tiny{font-size:.9rem;color:var(--muted)}.divider{height:1px;background:var(--line);margin:14px 0}
+@media(max-width:760px){body{font-size:17px}.sentence .en{font-size:1.25rem}.quiz-feedback{font-size:1.08rem}.quiz-feedback .feedback-title{font-size:1.2rem}.span8,.span7,.span6,.span5,.span4{grid-column:span 12}.top{align-items:flex-start;flex-direction:column}nav{width:100%}nav button{flex:1}.two{grid-template-columns:1fr}.stats{gap:7px}.stat{padding:10px}.card{padding:15px}}
+
+h1{letter-spacing:-.02em}button{font-size:1rem;border-radius:14px;padding:12px 16px}
+button.primary{box-shadow:0 3px 0 #a8dced}.mission-icon{background:linear-gradient(145deg,#fff0a9,#bcefff);border:2px solid #a8dced;box-shadow:0 4px 0 #d4eaf5}
+.eyebrow{color:#087da3}.stat{background:#fff;border:2px solid #c5e5f4}.stat b{color:#087da3}.word{background:#e8f8ff;border:1px solid #b7e1f1}
+.stage-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 16px}
+.stage-button{background:#fff;color:#31536b;border:2px solid #c1deef;min-height:58px;padding:10px 8px}
+.stage-button .stage-num{display:block;font-size:.8rem;color:#5c839c}.stage-button.active{background:#62d8f2;color:#07354a;border-color:#29b9dc;box-shadow:0 4px 0 #b2e8f5}.stage-button.active .stage-num{color:#14556c}
+.stage-panel{display:none}.stage-panel.active{display:block}.stage-intro{background:#e5f8ff;border:2px solid #b8e8f8;border-radius:16px;padding:14px 17px;margin-bottom:14px;font-weight:700;font-size:1.05rem}
+.feedback{font-size:1.3rem;font-weight:850;padding:14px 16px;border-radius:14px;margin-top:12px;border:2px solid}.feedback.good{background:#dcfce8;color:#145c38;border-color:#39b978}.feedback.try{background:#fff0f0;color:#8b202a;border-color:#ef858b}
+.learning-next{width:100%;font-size:1.08rem;margin-top:12px}@media(max-width:600px){body{font-size:17px}.stage-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.stage-button{min-height:52px}.card{padding:16px}.sentence .en{font-size:1.2rem}}
+
+/* Tablet touch support */
+body{font-size:clamp(17px,1.6vw,20px);-webkit-text-size-adjust:100%;text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom)}
+button{min-height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+input,textarea,select{font-size:16px;min-height:48px}
+.video-wrap{width:100%;touch-action:pan-y}
+@media(max-width:900px){
+ main{max-width:100%;padding-left:14px;padding-right:14px}
+ .span8,.span7,.span6,.span5,.span4{grid-column:span 12}
+ .card{padding:clamp(15px,2.4vw,22px)}
+}
+@media(max-width:600px){
+ body{font-size:17px}
+ .stage-nav{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stage-button{min-height:54px}
+ .card{padding:15px}
+ .sentence .en{font-size:1.2rem}
+ .two{grid-template-columns:1fr}
+}
+@media(orientation:landscape) and (max-height:600px){.stage-nav{position:static}main{padding-top:12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+<header><div class="top">
+  <div class="brand"><div class="logo">🚀</div><div>MISSION ENGLISH LAB<small>SCIENCE × ENGLISH MISSIONS</small></div></div>
+  <nav>
+    <button data-view="home" class="active">ミッション</button>
+    <button data-view="learn">学習する</button>
+    <button data-view="manage">教材管理</button>
+    <button data-view="progress">学習記録</button>
+  </nav>
+</div></header>
+<main>
+  <section id="view-home">
+    <div class="eyebrow">Mission Control / Home</div>
+    <h1>英語で、宇宙をもっと知ろう。</h1>
+    <p class="sub">好きな動画を入り口に、英文・単語・クイズに挑戦しよう。</p>
+    <div class="stats">
+      <div class="stat"><b id="stat-total">0</b><span>登録ミッション</span></div>
+      <div class="stat"><b id="stat-done">0</b><span>クリア済み</span></div>
+      <div class="stat"><b id="stat-words">0</b><span>学習できる単語</span></div>
+    </div>
+    <div class="row" style="margin:18px 0 12px"><h2>Available Missions</h2><button class="primary" onclick="showView('manage')">＋ 教材を作る</button></div>
+    <div id="mission-list" class="grid"></div>
+  </section>
+
+  <section id="view-manage" class="hidden">
+    <div class="eyebrow">Mission Builder / Parent</div>
+    <h1>教材の作成・編集</h1>
+    <p class="sub">動画の区間、英文、単語、クイズを登録できます。教材はこのブラウザ内に保存されます。</p>
+    <div class="grid">
+      <div class="card span7">
+        <div class="row"><h2>1. 動画の情報</h2><span class="badge">教材設定</span></div>
+        <label for="m-title">教材タイトル</label><input id="m-title" placeholder="例：How to land on the Mun">
+        <label for="m-theme">学習テーマ</label><input id="m-theme" placeholder="例：KSPでムンに着陸する">
+        <label for="m-url">YouTube URL</label><input id="m-url" placeholder="https://www.youtube.com/watch?v=...">
+        <div class="two">
+          <div><label for="m-start">開始時刻（分:秒）</label><input id="m-start" value="00:15" placeholder="00:15"></div>
+          <div><label for="m-end">終了時刻（分:秒）</label><input id="m-end" value="03:24" placeholder="03:24"></div>
+        </div>
+        <p class="hint">例：00:15〜03:24。学習画面ではこの区間を開始位置・終了位置として設定します。</p>
+        <label for="m-transcript">字幕・文字起こし（任意）</label><textarea id="m-transcript" placeholder="動画の英文字幕を貼り付けると、英文を作るときの参考にできます。"></textarea>
+        <div class="actions"><button class="primary" id="save-mission">教材を保存</button><button id="reset-form" class="ghost">入力をクリア</button></div>
+        <p id="form-message" class="hint" role="status"></p>
+      </div>
+      <div class="card span5">
+        <h2>2. 英文・単語・クイズ</h2>
+        <p class="hint">まずは手動で教材を作れます。英文を1つずつ追加し、単語とクイズを登録してください。</p>
+        <label for="s-en">英文</label><input id="s-en" placeholder="The spacecraft enters orbit.">
+        <label for="s-ja">日本語訳</label><input id="s-ja" placeholder="宇宙船は軌道に入る。">
+        <label for="s-words">重要単語（英語=日本語、カンマ区切り）</label><input id="s-words" placeholder="spacecraft=宇宙船, orbit=軌道">
+        <button id="add-sentence" class="gold" style="margin-top:10px">＋ 英文を追加</button>
+        <div class="divider"></div>
+        <label for="q-question">クイズの問題</label><input id="q-question" placeholder="What does orbit mean?">
+        <label for="q-options">選択肢（4つ、| で区切る）</label><input id="q-options" placeholder="軌道|燃料|推力|エンジン">
+        <label for="q-answer">正解の選択肢（1〜4）</label><select id="q-answer"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+        <label for="q-explain">解説</label><input id="q-explain" placeholder="orbit は宇宙で天体の周りを回る道筋です。">
+        <button id="add-quiz" style="margin-top:10px">＋ クイズを追加</button>
+      </div>
+      <div class="card span12">
+        <div class="row"><h2>3. この教材に登録した内容</h2><span class="badge" id="edit-status">新規教材</span></div>
+        <div id="editor-items" class="empty">英文やクイズを追加すると、ここに表示されます。</div>
+        <div class="actions"><button id="publish-mission" class="primary">教材を公開して保存</button><button id="delete-mission" class="ghost">この教材を削除</button></div>
+      </div>
+    </div>
+    <div class="warning" style="margin-top:15px">AI自動生成はまだ接続していません。AI APIを使わずに動作を試せるよう、教材の手動登録機能を実装した試作品です。字幕を貼るだけで自動生成する機能は、後から安全に接続できます。</div>
+  </section>
+
+  <section id="view-learn" class="hidden">
+    <div class="eyebrow">Flight Training / Learn</div>
+    <div class="row" style="align-items:flex-start;flex-wrap:wrap"><div><h1 id="learn-title">ミッションを選択</h1><p class="sub" id="learn-theme">一覧から学習する教材を選んでください。</p></div><button class="ghost" onclick="showView('home')">← ミッション一覧</button></div>
+    <div id="learn-empty" class="empty">ホーム画面でミッションを選ぶと、ここに学習内容が表示されます。</div>
+    <div id="learn-content" class="hidden">
+      <div class="stage-nav" aria-label="学習ステップ">
+        <button class="stage-button active" data-stage="video"><span class="stage-num">STEP 1</span>🎬 動画</button>
+        <button class="stage-button" data-stage="vocab"><span class="stage-num">STEP 2</span>🔤 単語</button>
+        <button class="stage-button" data-stage="sentences"><span class="stage-num">STEP 3</span>📖 英文・和訳</button>
+        <button class="stage-button" data-stage="quiz"><span class="stage-num">STEP 4</span>⭐ クイズ</button>
+      </div>
+      <div class="card" style="margin-bottom:15px"><div class="row"><h2 id="stage-heading">STEP 1：まずは動画を見よう！</h2><span class="badge" id="stage-badge">1 / 4</span></div><div class="progress"><div id="stage-bar" style="width:25%"></div></div><p class="hint" id="stage-instruction">映像を見て、何が起きているか考えてみよう。</p></div>
+      <div class="stage-panel active" data-stage-panel="video"><div class="grid">
+        <div class="card span8"><h2>🎬 Video Mission</h2><div id="video-box" class="video-wrap"><div style="height:100%;display:grid;place-items:center;color:#4f6c83">YouTube動画</div></div><p class="hint" id="video-range"></p><div class="actions"><button id="restart-video">↻ 区間の最初から</button><button id="open-youtube" class="ghost">YouTubeで開く ↗</button></div><p class="tiny">指定区間は学習ページ内での再生を対象にします。YouTube本体で開いた動画を制限するものではありません。</p></div>
+        <div class="card span4"><h2>🚀 ミッションの進め方</h2><p>1. 動画を見てみよう</p><p>2. 大事な単語を確認しよう</p><p>3. 英文と意味を読もう</p><p>4. クイズに挑戦しよう</p><div class="actions"><button class="primary learning-next" onclick="showStage('vocab')">単語へすすむ →</button></div></div>
+      </div></div>
+      <div class="stage-panel" data-stage-panel="vocab"><div class="stage-intro">まずは大事な単語をチェック！ 🔎 英文を読むときのヒントになるよ。</div><div class="card"><h2>🔤 Mission Words</h2><div id="vocab-list"></div><div id="no-vocab" class="empty hidden">単語がまだありません。保護者画面で追加してください。</div><div class="actions"><button class="ghost" onclick="showStage('video')">← 動画にもどる</button><button class="primary" onclick="showStage('sentences')">英文・和訳へすすむ →</button></div></div></div>
+      <div class="stage-panel" data-stage-panel="sentences"><div class="stage-intro">知っている単語を手がかりに英文を読もう。🔊 先に英語を聞いて、自分で意味を考えてから和訳を確認してね。</div><div class="card"><h2>📖 English & Japanese</h2><div id="sentence-list"></div><div id="no-sentences" class="empty hidden">英文がまだありません。保護者画面で追加してください。</div><div class="actions"><button class="ghost" onclick="showStage('vocab')">← 単語にもどる</button><button class="primary" onclick="showStage('quiz')">クイズに挑戦 →</button></div></div></div>
+      <div class="stage-panel" data-stage-panel="quiz"><div class="stage-intro">ミッションの最終チェック！ 🌟 あわてずに考えて答えよう。</div><div class="card"><h2>⭐ Mission Quiz</h2><div id="quiz-list"></div><div id="no-quizzes" class="empty hidden">クイズがまだありません。</div><div class="actions"><button class="ghost" onclick="showStage('sentences')">← 英文を見直す</button><button id="complete-mission" class="primary">ミッションをクリア 🏆</button></div><p id="learn-feedback" class="hint" role="status"></p></div></div>
+      <div class="card" style="margin-top:15px"><div class="row"><h2>Mission Progress</h2><b id="step-count">0 / 0</b></div><div class="progress"><div id="step-bar"></div></div><p class="hint">最後まで進んだら「ミッションをクリア」を押して記録しよう。</p></div>
+    </div>
+  </section>
+
+  <section id="view-progress" class="hidden">
+    <div class="eyebrow">Flight Log / Progress</div><h1>学習記録</h1><p class="sub">このブラウザに保存された学習状況です。</p>
+    <div id="progress-list" class="grid"></div>
+    <div class="actions"><button id="export-data">バックアップをダウンロード</button><button id="import-button">バックアップを読み込む</button><input type="file" id="import-file" accept="application/json" class="hidden"></div>
+    <p class="hint">ブラウザのデータを消去すると記録が失われることがあります。ときどきバックアップを保存してください。</p>
+  </section>
+</main>
+<footer>Mission English Lab · 試作品 v1 · 教材と学習記録はこのブラウザ内に保存されます。</footer>
+<script>
+const KEY='missionEnglishLab.v1';
+const seed=[
+ {id:'sample-mun',title:'How to land on the Mun',theme:'KSP：ムンへ行くには？',url:'https://youtu.be/bIHFHzN1YXE',start:'00:15',end:'03:24',published:true,
+  sentences:[
+   {en:'The spacecraft enters orbit.',ja:'宇宙船は軌道に入る。',words:[['spacecraft','宇宙船'],['orbit','軌道']]},
+   {en:'The lander descends to the surface.',ja:'着陸船は地表へ降下する。',words:[['lander','着陸船'],['descend','降下する'],['surface','表面・地表']]},
+   {en:'The rocket flies to the Mun.',ja:'ロケットはムンへ飛んでいく。',words:[['rocket','ロケット'],['fly','飛ぶ']] }
+  ],
+  quizzes:[
+   {q:'What does “orbit” mean?',options:['軌道','燃料','推力','エンジン'],answer:0,explain:'orbit は、天体の周りを回る道筋である「軌道」です。'},
+   {q:'Which vehicle goes down to the surface?',options:['lander','engine','fuel tank','solar panel'],answer:0,explain:'lander は、天体に着陸するための着陸船・着陸機です。'}
+  ]},
+ {id:'sample-crew-dragon',title:'How Crew Dragon Works',theme:'宇宙船と有人飛行',url:'',start:'00:00',end:'00:00',published:true,
+  sentences:[
+   {en:'The Crew Dragon is a human-rated spacecraft.',ja:'クルードラゴンは、人間を乗せるための安全認証を受けた宇宙船です。',words:[['human-rated','有人飛行用として認証された'],['spacecraft','宇宙船']]},
+   {en:'This means it is capable of carrying humans into space.',ja:'つまり、人間を宇宙へ運ぶことができます。',words:[['capable of','〜する能力がある'],['carry','運ぶ']]},
+   {en:'It was created by a private company called SpaceX.',ja:'これはSpaceXという民間企業によって開発されました。',words:[['private company','民間企業'],['created','作られた・開発された']]}
+  ],
+  quizzes:[
+   {q:'What does “capable of” mean?',options:['〜する能力がある','〜の外側に','〜の代わりに','〜の前に'],answer:0,explain:'capable of は「〜する能力がある」という意味です。'},
+   {q:'Which company created Crew Dragon?',options:['SpaceX','NASA','JAXA','ESA'],answer:0,explain:'Crew Dragon は民間企業 SpaceX が開発しました。'}
+  ]}
+];
+let data=loadData(),currentId=null,draftSentences=[],draftQuizzes=[],editingId=null,quizAnswered={},completed=loadCompleted();
+function loadData(){try{const d=JSON.parse(localStorage.getItem(KEY));return Array.isArray(d)&&d.length?d:structuredClone(seed)}catch(e){return structuredClone(seed)}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderHome();renderProgress()}
+function loadCompleted(){try{return JSON.parse(localStorage.getItem(KEY+'.completed')||'{}')}catch(e){return {}}}
+function saveCompleted(){localStorage.setItem(KEY+'.completed',JSON.stringify(completed))}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function seconds(t){if(!t)return 0;let p=String(t).trim().split(':').map(Number);if(p.some(n=>!Number.isFinite(n)||n<0))return NaN;return p.length===2?p[0]*60+p[1]:p.length===3?p[0]*3600+p[1]*60+p[2]:NaN}
+function timeLabel(t){const n=seconds(t);if(!Number.isFinite(n))return t||'00:00';return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
+function ytId(url){try{const u=new URL(url);if(u.hostname.includes('youtu.be'))return u.pathname.slice(1);if(u.hostname.includes('youtube.com'))return u.searchParams.get('v')||u.pathname.split('/').filter(Boolean).pop()}catch(e){}return ''}
+function showView(v){document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));document.getElementById('view-'+v).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(v==='home')renderHome();if(v==='progress')renderProgress();if(v==='manage')renderEditor()}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+function renderHome(){const list=document.getElementById('mission-list');const visible=data.filter(m=>m.published);list.innerHTML=visible.map(m=>{const done=!!completed[m.id];return `<div class="card span6"><div class="mission"><div class="mission-icon">${m.theme?.toLowerCase().includes('dragon')||m.title.toLowerCase().includes('crew')?'🛰️':'🚀'}</div><div style="flex:1;min-width:0"><div class="row" style="flex-wrap:wrap"><h3>${esc(m.title)}</h3><span class="badge ${done?'done':''}">${done?'クリア済み':'未挑戦'}</span></div><p>${esc(m.theme||'英語ミッション')}</p><p class="tiny">${m.sentences.length}英文 · ${m.quizzes.length}問 · ${m.url?'動画あり':'動画未登録'}</p><div class="actions"><button class="primary" onclick="startLearn('${m.id}')">${done?'もう一度学ぶ':'ミッション開始'} →</button><button class="ghost small" onclick="editMission('${m.id}')">編集</button></div></div></div></div>`}).join('')||'<div class="empty span12">教材がありません。保護者画面で作成してください。</div>';
+document.getElementById('stat-total').textContent=visible.length;document.getElementById('stat-done').textContent=visible.filter(m=>completed[m.id]).length;document.getElementById('stat-words').textContent=visible.reduce((n,m)=>n+m.sentences.reduce((x,s)=>x+s.words.length,0),0)}
+function startLearn(id){currentId=id;quizAnswered={};currentStage='video';showView('learn');renderLearn()}
+let currentStage='video';
+const stageInfo={video:{heading:'STEP 1：まずは動画を見よう！',instruction:'映像を見て、何が起きているか考えてみよう。'},vocab:{heading:'STEP 2：大事な単語をチェック！',instruction:'単語の意味と発音を確認しよう。'},sentences:{heading:'STEP 3：英文と意味を読もう！',instruction:'英文を聞いて、自分で意味を考えてから和訳を確認しよう。'},quiz:{heading:'STEP 4：クイズに挑戦！',instruction:'学んだ単語と英文を思い出して答えよう。'}};
+function showStage(stage){currentStage=stage;document.querySelectorAll('[data-stage-panel]').forEach(p=>p.classList.toggle('active',p.dataset.stagePanel===stage));document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('active',b.dataset.stage===stage));const info=stageInfo[stage]||stageInfo.video,order=['video','vocab','sentences','quiz'],idx=order.indexOf(stage);document.getElementById('stage-heading').textContent=info.heading;document.getElementById('stage-instruction').textContent=info.instruction;document.getElementById('stage-badge').textContent=(idx+1)+' / 4';document.getElementById('stage-bar').style.width=((idx+1)*25)+'%';if(stage==='vocab'||stage==='sentences')speakStop();window.scrollTo({top:0,behavior:'smooth'});}
+document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',()=>showStage(b.dataset.stage)));
+function renderLearn(){
+ const m=data.find(x=>x.id===currentId);if(!m){document.getElementById('learn-empty').classList.remove('hidden');document.getElementById('learn-content').classList.add('hidden');return}
+ document.getElementById('learn-empty').classList.add('hidden');document.getElementById('learn-content').classList.remove('hidden');document.getElementById('learn-title').textContent=m.title;document.getElementById('learn-theme').textContent=m.theme||'';
+ const id=ytId(m.url),a=seconds(m.start),b=seconds(m.end);let embed='';
+ if(id){let params='rel=0&playsinline=1';if(Number.isFinite(a)&&a>0)params+='&start='+Math.floor(a);if(Number.isFinite(b)&&b>a)params+='&end='+Math.floor(b);embed=`<iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}" title="${esc(m.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`}else embed='<div style="height:100%;display:grid;place-items:center;color:#4f6c83;padding:20px;text-align:center">この教材には動画URLがありません。保護者画面から動画を登録できます。</div>';
+ document.getElementById('video-box').innerHTML=embed;document.getElementById('video-range').textContent=id&&b>a?`指定区間：${timeLabel(m.start)}〜${timeLabel(m.end)}`:'再生区間が設定されていません。';document.getElementById('open-youtube').onclick=()=>{if(m.url)window.open(m.url,'_blank','noopener')};document.getElementById('restart-video').onclick=()=>{if(id)renderLearn()};
+ const words=[],seen=new Set();m.sentences.forEach(s=>s.words.forEach(w=>{const k=w[0].toLowerCase();if(!seen.has(k)){seen.add(k);words.push({en:w[0],ja:w[1],sentence:s.en})}}));
+ document.getElementById('vocab-list').innerHTML=words.map(w=>`<div class="sentence"><div class="row" style="align-items:center;flex-wrap:wrap"><div><div class="en">${esc(w.en)}</div><div class="ja">${esc(w.ja)}</div></div><button class="gold" onclick="speak(${JSON.stringify(w.en).replace(/</g,'\\u003c')})">🔊 発音を聞く</button></div><p class="hint">出てくる英文：${esc(w.sentence)}</p></div>`).join('');document.getElementById('no-vocab').classList.toggle('hidden',words.length>0);
+ document.getElementById('sentence-list').innerHTML=m.sentences.map(s=>`<div class="sentence"><div class="row" style="align-items:flex-start;gap:12px"><div class="en">${esc(s.en)}</div><button class="gold" onclick="speak(${JSON.stringify(s.en).replace(/</g,'\\u003c')})">🔊 聞く</button></div><details style="margin-top:12px"><summary style="cursor:pointer;font-weight:800;color:#087da3;font-size:1.05rem">和訳を確認する</summary><div class="ja">${esc(s.ja)}</div></details><div style="margin-top:10px">${s.words.map(w=>`<span class="word"><b>${esc(w[0])}</b><span>${esc(w[1])}</span></span>`).join('')}</div></div>`).join('');document.getElementById('no-sentences').classList.toggle('hidden',m.sentences.length>0);
+ document.getElementById('quiz-list').innerHTML=m.quizzes.map((q,i)=>`<div class="sentence"><h3 style="font-size:1.2rem">問題 ${i+1} / ${m.quizzes.length}</h3><div style="font-size:1.18rem;font-weight:800;margin-bottom:12px">${esc(q.q)}</div>${q.options.map((o,j)=>`<button class="quiz-option ${quizAnswered[i]===j?(j===q.answer?'correct':'wrong'):''}" ${quizAnswered[i]!==undefined?'disabled':''} onclick="answerQuiz(${i},${j})">${j+1}. ${esc(o)}</button>`).join('')}<div id="qfeedback-${i}" class="${quizAnswered[i]!==undefined?'feedback '+(quizAnswered[i]===q.answer?'good':'try'):'hint'}">${quizAnswered[i]!==undefined?`<strong>${quizAnswered[i]===q.answer?'🎉 正解！':'💡 もう一度確認しよう'}</strong><div style="margin-top:5px;font-size:1rem;font-weight:600">${esc(q.explain||'英文と単語を見直してみよう。')}</div>`:''}</div></div>`).join('');document.getElementById('no-quizzes').classList.toggle('hidden',m.quizzes.length>0);
+ updateLearnProgress();showStage(currentStage||'video');
+}
+function answerQuiz(i,j){const m=data.find(x=>x.id===currentId);quizAnswered[i]=j;renderLearn();const correct=m.quizzes.filter((q,k)=>quizAnswered[k]===q.answer).length;document.getElementById('learn-feedback').textContent=`クイズ：${correct} / ${Object.keys(quizAnswered).length}問 正解`;updateLearnProgress();}
+function updateLearnProgress(){const m=data.find(x=>x.id===currentId);if(!m)return;const total=m.sentences.length+m.quizzes.length,done=m.sentences.length+Object.keys(quizAnswered).length;document.getElementById('step-count').textContent=`${Math.min(done,total)} / ${total}`;document.getElementById('step-bar').style.width=(total?Math.min(done/total,1)*100:0)+'%';}
+document.getElementById('complete-mission').addEventListener('click',()=>{if(!currentId)return;completed[currentId]={date:new Date().toISOString(),score:data.find(x=>x.id===currentId).quizzes.filter((q,i)=>quizAnswered[i]===q.answer).length,total:data.find(x=>x.id===currentId).quizzes.length};saveCompleted();document.getElementById('learn-feedback').textContent='ミッション完了！学習記録に保存しました。';updateLearnProgress();renderHome();renderProgress()});
+function resetForm(){editingId=null;draftSentences=[];draftQuizzes=[];['m-title','m-theme','m-url','m-transcript'].forEach(id=>document.getElementById(id).value='');document.getElementById('m-start').value='00:00';document.getElementById('m-end').value='00:00';document.getElementById('form-message').textContent='';document.getElementById('edit-status').textContent='新規教材';renderEditor()}
+document.getElementById('reset-form').addEventListener('click',resetForm);
+function editMission(id){const m=data.find(x=>x.id===id);if(!m)return;editingId=id;draftSentences=structuredClone(m.sentences);draftQuizzes=structuredClone(m.quizzes);document.getElementById('m-title').value=m.title;document.getElementById('m-theme').value=m.theme||'';document.getElementById('m-url').value=m.url||'';document.getElementById('m-start').value=m.start||'00:00';document.getElementById('m-end').value=m.end||'00:00';document.getElementById('m-transcript').value=m.transcript||'';document.getElementById('edit-status').textContent='編集中';showView('manage');renderEditor()}
+function renderEditor(){document.getElementById('editor-items').innerHTML=(draftSentences.length||draftQuizzes.length)?draftSentences.map((s,i)=>`<div class="sentence"><div class="row"><b>${esc(s.en)}</b><button class="small" onclick="removeSentence(${i})">削除</button></div><div class="hint">${esc(s.ja)}</div><div class="tiny">${s.words.map(w=>esc(w[0])+'：'+esc(w[1])).join(' / ')}</div></div>`).join('')+draftQuizzes.map((q,i)=>`<div class="sentence"><div class="row"><b>Q${i+1}. ${esc(q.q)}</b><button class="small" onclick="removeQuiz(${i})">削除</button></div><div class="hint">${q.options.map((o,j)=>(j+1)+'. '+esc(o)+(j===q.answer?' ✓':'')).join('　')}</div></div>`).join(''):'<div class="empty">英文やクイズを追加すると、ここに表示されます。</div>'}
+function removeSentence(i){draftSentences.splice(i,1);renderEditor()}function removeQuiz(i){draftQuizzes.splice(i,1);renderEditor()}
+document.getElementById('add-sentence').addEventListener('click',()=>{const en=document.getElementById('s-en').value.trim(),ja=document.getElementById('s-ja').value.trim(),raw=document.getElementById('s-words').value.trim();if(!en||!ja){alert('英文と日本語訳を入力してください。');return}const words=raw?raw.split(',').map(x=>{const p=x.split('=');return[p[0]?.trim()||'',p.slice(1).join('=').trim()||'意味を追加してください']}).filter(x=>x[0]):[];draftSentences.push({en,ja,words});document.getElementById('s-en').value='';document.getElementById('s-ja').value='';document.getElementById('s-words').value='';renderEditor()});
+document.getElementById('add-quiz').addEventListener('click',()=>{const q=document.getElementById('q-question').value.trim(),opts=document.getElementById('q-options').value.split('|').map(x=>x.trim()).filter(Boolean),answer=Number(document.getElementById('q-answer').value)-1,explain=document.getElementById('q-explain').value.trim();if(!q||opts.length!==4){alert('問題と、| で区切った4つの選択肢を入力してください。');return}draftQuizzes.push({q,options:opts,answer,explain});['q-question','q-options','q-explain'].forEach(id=>document.getElementById(id).value='');renderEditor()});
+function saveMission(published){const title=document.getElementById('m-title').value.trim(),theme=document.getElementById('m-theme').value.trim(),url=document.getElementById('m-url').value.trim(),start=document.getElementById('m-start').value.trim()||'00:00',end=document.getElementById('m-end').value.trim()||'00:00';if(!title){alert('教材タイトルを入力してください。');return}if(url&&!ytId(url)){alert('YouTube URLを確認してください。');return}const a=seconds(start),b=seconds(end);if(!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<a){alert('開始・終了時刻を確認してください。例：00:15、03:24。終了時刻は開始時刻より後にしてください。');return}const id=editingId||('mission-'+Date.now());const old=data.find(m=>m.id===id);const obj={id,title,theme,url,start,end,transcript:document.getElementById('m-transcript').value,published:published||(old?.published||false),sentences:draftSentences,quizzes:draftQuizzes};if(old)data=data.map(m=>m.id===id?obj:m);else data.unshift(obj);editingId=id;persist();document.getElementById('edit-status').textContent=published?'公開済み':'保存済み';document.getElementById('form-message').textContent=published?'教材を保存して公開しました。':'教材を保存しました。';renderEditor()}
+document.getElementById('save-mission').addEventListener('click',()=>saveMission(false));document.getElementById('publish-mission').addEventListener('click',()=>saveMission(true));document.getElementById('delete-mission').addEventListener('click',()=>{if(!editingId){alert('削除する教材を開いてください。');return}if(!confirm('この教材を削除しますか？'))return;data=data.filter(m=>m.id!==editingId);delete completed[editingId];saveCompleted();persist();resetForm();showView('home')});
+function renderProgress(){const el=document.getElementById('progress-list');const rows=data.map(m=>{const c=completed[m.id];return `<div class="card span6"><div class="row"><h3>${esc(m.title)}</h3><span class="badge ${c?'done':''}">${c?'クリア済み':'未クリア'}</span></div><p class="hint">${c?'完了日：'+new Date(c.date).toLocaleString('ja-JP'):'まだ完了記録がありません。'}</p>${c?`<p>クイズ正解：${c.score} / ${c.total}</p>`:''}</div>`}).join('');el.innerHTML=rows||'<div class="empty span12">記録はまだありません。</div>'}
+document.getElementById('export-data').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({data,completed},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mission-english-lab-backup.json';a.click();URL.revokeObjectURL(a.href)});
+document.getElementById('import-button').addEventListener('click',()=>document.getElementById('import-file').click());document.getElementById('import-file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.data))throw Error('format');if(confirm('現在の教材をバックアップの内容で置き換えますか？')){data=d.data;completed=d.completed||{};persist();saveCompleted();resetForm();alert('バックアップを読み込みました。')}}catch(err){alert('バックアップを読み込めませんでした。ファイルを確認してください。')}e.target.value=''});
+
+function speakStop(){if('speechSynthesis' in window)window.speechSynthesis.cancel()}
+function speak(text){
+  if(!('speechSynthesis' in window)){alert('このブラウザでは音声読み上げに対応していません。');return}
+  const synth=window.speechSynthesis;
+  synth.cancel();
+  const utterance=new SpeechSynthesisUtterance(String(text));
+  utterance.lang='en-US'; utterance.rate=0.82; utterance.pitch=1;
+  const setVoice=()=>{
+    const voices=synth.getVoices();
+    const voice=voices.find(v=>/^en-US$/i.test(v.lang))||voices.find(v=>/^en/i.test(v.lang));
+    if(voice) utterance.voice=voice;
+  };
+  setVoice();
+  utterance.onerror=(event)=>console.warn('Speech synthesis error:',event.error);
+  setTimeout(()=>{setVoice();try{synth.speak(utterance)}catch(err){console.error(err);alert('音声を再生できませんでした。端末の音量とブラウザ設定を確認してください。')}},100);
+}
+
+renderHome();renderProgress();renderEditor();
+</script>
+</body>
+</html>
