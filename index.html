@@ -208,6 +208,30 @@ input,textarea,select{font-size:16px;min-height:48px}
 }
 @media(max-width:600px){#view-home > .home-title{font-size:clamp(2.35rem,9vw,3.3rem)}}
 
+
+/* Mission catalog: unified science-mission cards */
+#view-home .mission-section-title{color:#eaf8ff;font-size:clamp(1.35rem,2.5vw,1.7rem);margin:26px 0 14px}
+#view-home .mission-catalog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 12px}
+#view-home .mission-catalog-head h2{color:#eaf8ff;margin:0}
+#view-home #mission-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+#view-home .mission-card{grid-column:span 1;padding:18px;border-radius:22px;background:linear-gradient(155deg,#ffffff 0%,#f2faff 100%);border:2px solid #b9dff0;box-shadow:0 6px 0 #c7e4f1,0 12px 26px #020e1c55;display:flex;flex-direction:column;gap:14px;min-width:0}
+#view-home .mission-card-top{display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;align-items:center}
+#view-home .mission-art{height:92px;width:92px;border-radius:19px;display:grid;place-items:center;font-size:48px;background:radial-gradient(circle at 35% 25%,#fff 0,#dff7ff 38%,#8bdcf0 100%);border:2px solid #a8dced;box-shadow:inset 0 -6px 14px #268eae22,0 4px 0 #d4eaf5;position:relative;overflow:hidden}
+#view-home .mission-art:before,#view-home .mission-art:after{content:"";position:absolute;background:#fff9;border-radius:50%;width:5px;height:5px;top:17px;left:17px;box-shadow:43px 12px 0 #fff,18px 49px 0 #fff}
+#view-home .mission-art span{position:relative;z-index:1;filter:drop-shadow(0 3px 2px #16415b35)}
+#view-home .mission-heading{min-width:0}
+#view-home .mission-heading h3{font-size:clamp(1.08rem,2vw,1.28rem);line-height:1.3;color:#173b58;margin:0 0 7px;overflow-wrap:anywhere}
+#view-home .mission-heading p{margin:0;color:#55748a;font-size:.98rem;line-height:1.4}
+#view-home .mission-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:auto}
+#view-home .mission-meta span{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:#e8f6fc;border:1px solid #c3e2ef;color:#315b73;font-size:.88rem;font-weight:700}
+#view-home .mission-card .badge{align-self:flex-start;color:#58758a;border-color:#b7d2df;background:#f6fbfe;font-weight:750}
+#view-home .mission-card .badge.done{color:#176b49;border-color:#8dd5b2;background:#e8fbf1}
+#view-home .mission-card-actions{display:flex;align-items:center;gap:10px}
+#view-home .mission-start{flex:1;min-height:58px;font-size:1.08rem;font-weight:850;border-radius:15px;background:linear-gradient(135deg,#65d9ed,#45c4df);border:2px solid #42bfd9;color:#07354a;box-shadow:0 4px 0 #b4e5ef}
+#view-home .mission-edit{flex:0 0 auto;min-height:42px;padding:7px 11px;border:1px solid #c5dce8;background:transparent;color:#59768a;font-size:.86rem;border-radius:11px}
+#view-home .mission-edit:hover{background:#eaf7fc}
+@media(max-width:680px){#view-home #mission-list{grid-template-columns:1fr;gap:14px}#view-home .mission-card{padding:15px}#view-home .mission-card-top{grid-template-columns:78px minmax(0,1fr);gap:12px}#view-home .mission-art{width:78px;height:78px;font-size:40px}#view-home .mission-start{min-height:56px}}
+
 </style>
 </head>
 <body>
@@ -248,7 +272,7 @@ input,textarea,select{font-size:16px;min-height:48px}
       <div class="stat"><b id="stat-done">0</b><span>クリア済み</span></div>
       <div class="stat"><b id="stat-words">0</b><span>学習できる単語</span></div>
     </div>
-    <div class="row" style="margin:18px 0 12px"><h2>Available Missions</h2><button class="primary" onclick="showView('manage')">＋ 教材を作る</button></div>
+    <div class="mission-catalog-head"><h2>ミッションを選ぼう</h2><button class="primary" onclick="showView('manage')">＋ 教材を作る</button></div>
     <div id="mission-list" class="grid"></div>
   </section>
 
@@ -364,8 +388,7 @@ function ytId(url){try{const u=new URL(url);if(u.hostname.includes('youtu.be'))r
 function showView(v){document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));document.getElementById('view-'+v).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(v==='home')renderHome();if(v==='progress')renderProgress();if(v==='manage')renderEditor()}
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 document.getElementById('brand-home').addEventListener('click',()=>showView('home')); 
-function renderHome(){const list=document.getElementById('mission-list');const visible=data.filter(m=>m.published);list.innerHTML=visible.map(m=>{const done=!!completed[m.id];return `<div class="card span6"><div class="mission"><div class="mission-icon">${m.theme?.toLowerCase().includes('dragon')||m.title.toLowerCase().includes('crew')?'🛰️':'🚀'}</div><div style="flex:1;min-width:0"><div class="row" style="flex-wrap:wrap"><h3>${esc(m.title)}</h3><span class="badge ${done?'done':''}">${done?'クリア済み':'未挑戦'}</span></div><p>${esc(m.theme||'英語ミッション')}</p><p class="tiny">${m.sentences.length}英文 · ${m.quizzes.length}問 · ${m.url?'動画あり':'動画未登録'}</p><div class="actions"><button class="primary" onclick="startLearn('${m.id}')">${done?'もう一度学ぶ':'ミッション開始'} →</button><button class="ghost small" onclick="editMission('${m.id}')">編集</button></div></div></div></div>`}).join('')||'<div class="empty span12">教材がありません。保護者画面で作成してください。</div>';
-document.getElementById('stat-total').textContent=visible.length;document.getElementById('stat-done').textContent=visible.filter(m=>completed[m.id]).length;document.getElementById('stat-words').textContent=visible.reduce((n,m)=>n+m.sentences.reduce((x,s)=>x+s.words.length,0),0)}
+function renderHome(){const list=document.getElementById('mission-list');const visible=data.filter(m=>m.published);list.innerHTML=visible.map(m=>{const done=!!completed[m.id];const title=(m.title||'').toLowerCase();const theme=(m.theme||'').toLowerCase();let icon='🚀';if(/dragon|crew|宇宙船|有人飛行/.test(title+' '+theme))icon='🛰️';else if(/moon|mun|月|着陸/.test(title+' '+theme))icon='🌕';else if(/rocket|ロケット|engine|エンジン/.test(title+' '+theme))icon='🚀';else if(/planet|惑星|solar|太陽/.test(title+' '+theme))icon='🪐';else if(/earth|地球/.test(title+' '+theme))icon='🌍';const words=m.sentences.reduce((n,s)=>n+(s.words||[]).length,0);return `<article class="mission-card"><div class="mission-card-top"><div class="mission-art" aria-hidden="true"><span>${icon}</span></div><div class="mission-heading"><h3>${esc(m.title)}</h3><p>${esc(m.theme||'サイエンス・ミッション')}</p></div></div><span class="badge ${done?'done':''}">${done?'✓ クリア済み':'● 未挑戦'}</span><div class="mission-meta"><span>📖 英文 ${m.sentences.length}</span><span>🔤 単語 ${words}</span><span>⭐ クイズ ${m.quizzes.length}問</span></div><div class="mission-card-actions"><button class="primary mission-start" onclick="startLearn('${m.id}')">${done?'もう一度学ぶ':'ミッション開始'} →</button><button class="mission-edit" onclick="editMission('${m.id}')" aria-label="${esc(m.title)}を編集">編集</button></div></article>`}).join('')||'<div class="empty span12">教材がありません。保護者画面で作成してください。</div>';document.getElementById('stat-total').textContent=visible.length;document.getElementById('stat-done').textContent=visible.filter(m=>completed[m.id]).length;document.getElementById('stat-words').textContent=visible.reduce((n,m)=>n+m.sentences.reduce((x,s)=>x+(s.words||[]).length,0),0)}
 function startLearn(id){currentId=id;quizAnswered={};currentStage='video';showView('learn');renderLearn()}
 let currentStage='video';
 const stageInfo={video:{heading:'STEP 1：まずは動画を見よう！',instruction:'映像を見て、何が起きているか考えてみよう。'},vocab:{heading:'STEP 2：大事な単語をチェック！',instruction:'単語の意味と発音を確認しよう。'},sentences:{heading:'STEP 3：英文と意味を読もう！',instruction:'英文を聞いて、自分で意味を考えてから和訳を確認しよう。'},quiz:{heading:'STEP 4：クイズに挑戦！',instruction:'学んだ単語と英文を思い出して答えよう。'}};
