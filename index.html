@@ -275,6 +275,12 @@ input,textarea,select{font-size:16px;min-height:48px}
   }
 }
 
+
+/* JSON lesson import */
+.json-import-card{border:1px solid #b8dce9;background:linear-gradient(135deg,#f7fcff,#fff)}
+.json-import-card .actions{display:flex;flex-wrap:wrap;gap:10px}
+#json-import-message{white-space:pre-wrap}
+
 </style>
 </head>
 <body>
@@ -338,6 +344,16 @@ input,textarea,select{font-size:16px;min-height:48px}
         <div class="actions"><button class="primary" id="save-mission">教材を保存</button><button id="reset-form" class="ghost">入力をクリア</button></div>
         <p id="form-message" class="hint" role="status"></p>
       </div>
+      <div class="card span12 json-import-card">
+        <div class="row"><h2>📥 ChatGPTで作った教材を読み込む</h2><span class="badge">JSON</span></div>
+        <p class="hint">ChatGPTで教材JSONを作成し、ファイルに保存して読み込めます。読み込み後に内容を確認・編集し、「教材を公開して保存」を押してください。</p>
+        <input id="mission-json-file" type="file" accept=".json,application/json" class="hidden">
+        <div class="actions">
+          <button id="import-mission-json" class="primary" type="button">JSONファイルを選択</button>
+          <button id="download-mission-json-example" class="ghost" type="button">JSON見本をダウンロード</button>
+        </div>
+        <p id="json-import-message" class="hint" role="status" aria-live="polite">読み込んだ教材は、保存ボタンを押すまで登録されません。</p>
+      </div>
       <div class="card span5">
         <h2>2. 英文・単語・クイズ</h2>
         <p class="hint">まずは手動で教材を作れます。英文を1つずつ追加し、単語とクイズを登録してください。</p>
@@ -358,7 +374,7 @@ input,textarea,select{font-size:16px;min-height:48px}
         <div class="actions"><button id="publish-mission" class="primary">教材を公開して保存</button><button id="delete-mission" class="ghost">この教材を削除</button></div>
       </div>
     </div>
-    <div class="warning" style="margin-top:15px">AI自動生成はまだ接続していません。AI APIを使わずに動作を試せるよう、教材の手動登録機能を実装した試作品です。字幕を貼るだけで自動生成する機能は、後から安全に接続できます。</div>
+    <div class="warning" style="margin-top:15px">ChatGPTで作成したJSONファイルを読み込み、内容を確認してから保存できます。JSON読み込み自体に追加料金はかかりません。</div>
   </section>
 
   <section id="view-learn" class="hidden">
@@ -707,6 +723,89 @@ async function connectCloud(){
 document.getElementById('cloud-connect').addEventListener('click',()=>connectCloud().catch(e=>setCloudMessage('エラー：'+(e.message||e))));
 document.getElementById('cloud-local').addEventListener('click',()=>{document.getElementById('cloud-panel').style.display='none'});
 window.addEventListener('load',()=>{const c=cloudConfig();if(c.url&&c.key){document.getElementById('cloud-url').value=c.url;document.getElementById('cloud-key').value=c.key;}});
+
+
+// Import a lesson JSON created with ChatGPT. No external API is called.
+const lessonJsonExample = {
+  title: "How the Saturn V Rocket Works",
+  theme: "サターンVロケットの仕組み",
+  url: "https://www.youtube.com/watch?v=VIDEO_ID",
+  start: "00:15",
+  end: "03:24",
+  transcript: "Paste the selected English transcript here.",
+  sentences: [
+    {
+      en: "The Saturn V was a powerful rocket.",
+      ja: "サターンVは強力なロケットでした。",
+      words: [["powerful", "強力な"], ["rocket", "ロケット"]]
+    }
+  ],
+  quizzes: [
+    {
+      q: "What was the Saturn V?",
+      options: ["A rocket", "A space station", "A rover", "A satellite"],
+      answer: 0,
+      explain: "The Saturn V was a rocket used for the Apollo missions."
+    }
+  ]
+};
+document.getElementById('import-mission-json').addEventListener('click',()=>{
+  document.getElementById('mission-json-file').click();
+});
+document.getElementById('download-mission-json-example').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(lessonJsonExample,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='mission-english-lab-template.json';a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('mission-json-file').addEventListener('change',async(event)=>{
+  const file=event.target.files?.[0];
+  const status=document.getElementById('json-import-message');
+  if(!file)return;
+  try{
+    const raw=await file.text();
+    const lesson=JSON.parse(raw);
+    const validString=(v)=>typeof v==='string';
+    if(!lesson||typeof lesson!=='object'||!validString(lesson.title)||!lesson.title.trim())throw new Error('title（教材タイトル）が必要です。');
+    if(!Array.isArray(lesson.sentences)||lesson.sentences.length<1)throw new Error('sentences（英文）が1文以上必要です。');
+    if(!Array.isArray(lesson.quizzes)||lesson.quizzes.length<1)throw new Error('quizzes（クイズ）が1問以上必要です。');
+    const sentences=lesson.sentences.map((s,i)=>{
+      if(!validString(s.en)||!s.en.trim()||!validString(s.ja)||!s.ja.trim())throw new Error(`英文${i+1}のenまたはjaがありません。`);
+      const words=Array.isArray(s.words)?s.words.map(w=>{
+        if(Array.isArray(w)&&w.length>=2)return [String(w[0]),String(w[1])];
+        if(w&&typeof w==='object')return [String(w.en||w.word||''),String(w.ja||w.meaning||'')];
+        throw new Error(`英文${i+1}の単語形式が正しくありません。`);
+      }).filter(w=>w[0]&&w[1]):[];
+      return {en:s.en,ja:s.ja,words};
+    });
+    const quizzes=lesson.quizzes.map((q,i)=>{
+      if(!validString(q.q)||!q.q.trim()||!Array.isArray(q.options)||q.options.length!==4)throw new Error(`クイズ${i+1}は問題文と4つの選択肢が必要です。`);
+      let answer=Number(q.answer);
+      if(!Number.isInteger(answer)||answer<0||answer>3){
+        if(Number.isInteger(answer)&&answer>=1&&answer<=4)answer-=1;
+        else throw new Error(`クイズ${i+1}のanswerは0〜3で指定してください。`);
+      }
+      return {q:q.q,options:q.options.map(String),answer,explain:String(q.explain||'')};
+    });
+    document.getElementById('m-title').value=lesson.title;
+    document.getElementById('m-theme').value=String(lesson.theme||'');
+    document.getElementById('m-url').value=String(lesson.url||'');
+    document.getElementById('m-start').value=String(lesson.start||'00:00');
+    document.getElementById('m-end').value=String(lesson.end||'00:00');
+    document.getElementById('m-transcript').value=String(lesson.transcript||'');
+    draftSentences=sentences;
+    draftQuizzes=quizzes;
+    editingId=null;
+    document.getElementById('edit-status').textContent='JSON読み込み・未保存';
+    document.getElementById('form-message').textContent='JSONから教材を読み込みました。内容を確認して「教材を公開して保存」を押してください。';
+    renderEditor();
+    status.textContent=`読み込み成功：英文${sentences.length}文、クイズ${quizzes.length}問。まだ保存されていません。`;
+  }catch(error){
+    status.textContent='読み込めませんでした：'+(error.message||error);
+  }finally{
+    event.target.value='';
+  }
+});
 
 renderHome();renderProgress();renderEditor();
 </script>
