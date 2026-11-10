@@ -315,10 +315,28 @@ function setCloudMessage(t){document.getElementById('cloud-message').textContent
 function showCloudPanel(){const c=cloudConfig();document.getElementById('cloud-url').value=c.url||'';document.getElementById('cloud-key').value=c.key||'';document.getElementById('cloud-panel').style.display='grid'}
 function cloudMissionToRow(m){return {id:m.id,title:m.title,theme:m.theme||'',youtube_url:m.url||'',start_time:m.start||'00:00',end_time:m.end||'00:00',content:{sentences:m.sentences||[],quizzes:m.quizzes||[],transcript:m.transcript||'',published:!!m.published},updated_at:new Date().toISOString()}}
 function cloudRowToMission(r){const c=r.content||{};return {id:r.id,title:r.title,theme:r.theme||'',url:r.youtube_url||'',start:r.start_time||'00:00',end:r.end_time||'00:00',transcript:c.transcript||'',published:c.published!==false,sentences:Array.isArray(c.sentences)?c.sentences:[],quizzes:Array.isArray(c.quizzes)?c.quizzes:[],cloud:true}}
-async function syncCloudMissions(){
+async function syncCloudMissions(preferCloud=false){
   if(!cloudClient)return;
-  const user= (await cloudClient.auth.getUser()).data.user;if(!user)return;
-  const cloudItems=data.filter(m=>m.cloud||/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.id));
+  const authResult=await cloudClient.auth.getUser();
+  if(authResult.error)throw authResult.error;
+  const user=authResult.data.user;if(!user)return;
+  // On login, download the cloud copy FIRST. Never upload this device's possibly stale
+  // local copy before checking the latest cloud data.
+  if(preferCloud){
+    const {data:rows,error}=await cloudClient.from('missions')
+      .select('id,title,theme,youtube_url,start_time,end_time,content,updated_at')
+      .order('updated_at',{ascending:false});
+    if(error)throw error;
+    const cloudMissions=(rows||[]).map(cloudRowToMission);
+    const norm=v=>String(v||'').trim().toLowerCase();
+    const localOnly=data.filter(m=>!m.cloud&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.id)
+      && !cloudMissions.some(c=>norm(c.title)===norm(m.title)&&norm(c.theme)===norm(m.theme)&&norm(c.url)===norm(m.url)));
+    data=[...localOnly,...cloudMissions];
+    localStorage.setItem(KEY,JSON.stringify(data));
+    renderHome();renderProgress();renderEditor();
+    return;
+  }
+  const cloudItems=data.filter(m=>m.cloud||/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(m.id));
   for(const m of cloudItems){const row=cloudMissionToRow(m);const {error}=await cloudClient.from('missions').upsert(row,{onConflict:'id'});if(error)throw error;}
   const {data:rows,error}=await cloudClient.from('missions').select('id,title,theme,youtube_url,start_time,end_time,content,updated_at').order('updated_at',{ascending:false});
   if(error)throw error;
@@ -407,7 +425,7 @@ async function connectCloud(){
   setCloudMessage('ログイン中です…');
   const {data:authData,error}=await cloudClient.auth.signInWithPassword({email,password});
   if(error){setCloudMessage('ログインできませんでした：'+error.message);return}
-  try{await syncCloudMissions();await syncCloudLearningRecords();document.getElementById('cloud-password').value='';document.getElementById('cloud-panel').style.display='none';alert('Supabaseに接続しました。教材と学習記録をクラウドと同期します。')}catch(e){setCloudMessage('ログインできましたが、同期に失敗しました：'+(e.message||e));}
+  try{await syncCloudMissions(true);await syncCloudLearningRecords();document.getElementById('cloud-password').value='';document.getElementById('cloud-panel').style.display='none';alert('Supabaseに接続しました。教材と学習記録をクラウドと同期します。')}catch(e){setCloudMessage('ログインできましたが、同期に失敗しました：'+(e.message||e));}
 }
 document.getElementById('cloud-connect').addEventListener('click',()=>connectCloud().catch(e=>setCloudMessage('エラー：'+(e.message||e))));
 document.getElementById('cloud-local').addEventListener('click',()=>{document.getElementById('cloud-panel').style.display='none'});
