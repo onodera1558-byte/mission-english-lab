@@ -203,7 +203,14 @@ let data=loadData(),currentId=null,draftSentences=[],draftQuizzes=[],editingId=n
 function loadData(){try{const d=JSON.parse(localStorage.getItem(KEY));return Array.isArray(d)&&d.length?d:structuredClone(seed)}catch(e){return structuredClone(seed)}}
 function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderHome();renderProgress();if(window.cloudClient)syncCloudMissions().catch(e=>{console.error('Cloud sync:',e);const msg=document.getElementById('form-message');if(msg)msg.textContent='クラウド保存に失敗しました：'+(e.message||e)+'。入力内容はこのブラウザに残っています。';})}
 function loadCompleted(){try{return JSON.parse(localStorage.getItem(KEY+'.completed')||'{}')}catch(e){return {}}}
-function saveCompleted(){localStorage.setItem(KEY+'.completed',JSON.stringify(completed))}
+function saveCompleted(){
+  localStorage.setItem(KEY+'.completed',JSON.stringify(completed));
+  if(cloudClient) syncCloudLearningRecords().catch(e=>{
+    console.error('Learning record sync:',e);
+    const msg=document.getElementById('learn-feedback');
+    if(msg) msg.textContent='学習記録はこの端末に保存されましたが、クラウド同期に失敗しました：'+(e.message||e);
+  });
+}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function seconds(t){if(!t)return 0;let p=String(t).trim().split(':').map(Number);if(p.some(n=>!Number.isFinite(n)||n<0))return NaN;return p.length===2?p[0]*60+p[1]:p.length===3?p[0]*3600+p[1]*60+p[2]:NaN}
 function timeLabel(t){const n=seconds(t);if(!Number.isFinite(n))return t||'00:00';return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
@@ -326,6 +333,69 @@ async function syncCloudMissions(){
   data=[...localOnly,...cloudMissions];
   localStorage.setItem(KEY,JSON.stringify(data));renderHome();renderProgress();renderEditor();
 }
+
+// Learning records are stored in public.learning_records and shared across signed-in devices.
+// Table columns: id, mission_id, mission_title, score, total_questions, completed_at.
+async function syncCloudLearningRecords(){
+  if(!cloudClient)return;
+  const {data:authData,error:authError}=await cloudClient.auth.getUser();
+  if(authError)throw authError;
+  if(!authData.user)return;
+
+  const {data:initialRows,error:readError}=await cloudClient
+    .from('learning_records')
+    .select('id,mission_id,mission_title,score,total_questions,completed_at')
+    .order('completed_at',{ascending:false});
+  if(readError)throw readError;
+
+  const latestByMission=new Map();
+  for(const row of (initialRows||[])){
+    if(!row.mission_id)continue;
+    const prev=latestByMission.get(row.mission_id);
+    if(!prev || new Date(row.completed_at)>new Date(prev.completed_at)) latestByMission.set(row.mission_id,row);
+  }
+
+  // Upload local completion records. Keep one latest record per mission to avoid duplicates.
+  for(const [missionId,localRecord] of Object.entries(completed)){
+    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(missionId))continue;
+    const mission=data.find(m=>m.id===missionId);
+    if(!mission)continue;
+    const existing=latestByMission.get(missionId);
+    const localDate=localRecord.date||new Date().toISOString();
+    if(existing && new Date(existing.completed_at)>new Date(localDate)){
+      completed[missionId]={date:existing.completed_at,score:existing.score||0,total:existing.total_questions||0,cloudRecordId:existing.id};
+      continue;
+    }
+    const row={
+      id:existing?.id||crypto.randomUUID(),
+      mission_id:missionId,
+      mission_title:mission.title,
+      score:Number(localRecord.score)||0,
+      total_questions:Number(localRecord.total)||0,
+      completed_at:localDate
+    };
+    const {error:upsertError}=await cloudClient.from('learning_records').upsert(row,{onConflict:'id'});
+    if(upsertError)throw upsertError;
+    latestByMission.set(missionId,row);
+    completed[missionId]={...localRecord,cloudRecordId:row.id};
+  }
+
+  // Download records completed on another device and merge by mission ID.
+  const {data:cloudRows,error:finalReadError}=await cloudClient
+    .from('learning_records')
+    .select('id,mission_id,mission_title,score,total_questions,completed_at')
+    .order('completed_at',{ascending:false});
+  if(finalReadError)throw finalReadError;
+  for(const row of (cloudRows||[])){
+    if(!row.mission_id || !data.some(m=>m.id===row.mission_id))continue;
+    const local=completed[row.mission_id];
+    if(!local || new Date(row.completed_at)>new Date(local.date||0)){
+      completed[row.mission_id]={date:row.completed_at,score:row.score||0,total:row.total_questions||0,cloudRecordId:row.id};
+    }
+  }
+  localStorage.setItem(KEY+'.completed',JSON.stringify(completed));
+  renderHome();renderProgress();
+}
 async function connectCloud(){
   const url=document.getElementById('cloud-url').value.trim(),key=document.getElementById('cloud-key').value.trim(),email=document.getElementById('cloud-email').value.trim(),password=document.getElementById('cloud-password').value;
   if(!url.startsWith('https://')||!key.startsWith('sb_publishable_')){setCloudMessage('Project URLとsb_publishable_で始まるPublishable keyを確認してください。');return}
@@ -337,7 +407,7 @@ async function connectCloud(){
   setCloudMessage('ログイン中です…');
   const {data:authData,error}=await cloudClient.auth.signInWithPassword({email,password});
   if(error){setCloudMessage('ログインできませんでした：'+error.message);return}
-  try{await syncCloudMissions();document.getElementById('cloud-password').value='';document.getElementById('cloud-panel').style.display='none';alert('Supabaseに接続しました。教材はクラウドと同期されます。')}catch(e){setCloudMessage('ログインできましたが、教材の同期に失敗しました：'+(e.message||e));}
+  try{await syncCloudMissions();await syncCloudLearningRecords();document.getElementById('cloud-password').value='';document.getElementById('cloud-panel').style.display='none';alert('Supabaseに接続しました。教材と学習記録をクラウドと同期します。')}catch(e){setCloudMessage('ログインできましたが、同期に失敗しました：'+(e.message||e));}
 }
 document.getElementById('cloud-connect').addEventListener('click',()=>connectCloud().catch(e=>setCloudMessage('エラー：'+(e.message||e))));
 document.getElementById('cloud-local').addEventListener('click',()=>{document.getElementById('cloud-panel').style.display='none'});
