@@ -302,8 +302,14 @@ function speak(text){
     if(voice) utterance.voice=voice;
   };
   setVoice();
-  utterance.onerror=(event)=>console.warn('Speech synthesis error:',event.error);
-  setTimeout(()=>{setVoice();try{synth.speak(utterance)}catch(err){console.error(err);alert('音声を再生できませんでした。端末の音量とブラウザ設定を確認してください。')}},100);
+  utterance.onerror=(event)=>{
+    console.warn('Speech synthesis error:',event.error);
+    alert('音声を再生できませんでした。iPadの消音設定・音量を確認して、もう一度お試しください。');
+  };
+  // iPad版Chromeでは、クリック後にsetTimeoutを挟むとユーザー操作として
+  // 扱われず、音声再生が開始されないことがあるため、同じ操作内で直ちに再生する。
+  try{ synth.speak(utterance); }
+  catch(err){ console.error(err); alert('音声を再生できませんでした。端末の音量とブラウザ設定を確認してください。'); }
 }
 
 
