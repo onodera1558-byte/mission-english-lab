@@ -51,6 +51,136 @@ input,textarea,select{font-size:16px;min-height:48px}
 @media(orientation:landscape) and (max-height:600px){.stage-nav{position:static}main{padding-top:12px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 
+
+/* iPad learning view: space-science theme, larger touch targets and clearer contrast */
+#view-learn #learn-title{
+  color:#eaf8ff;
+  font-size:clamp(1.8rem,3.5vw,2.5rem);
+  text-shadow:0 2px 14px #37bce866;
+}
+#view-learn #learn-theme{color:#b9d9ec}
+#view-learn .stage-nav{gap:12px;margin:18px 0}
+#view-learn .stage-button{
+  min-height:76px;
+  padding:13px 10px;
+  border-radius:17px;
+  border:2px solid #8dcfe8;
+  background:linear-gradient(145deg,#f8fdff,#dff4ff);
+  color:#123c5a;
+  font-size:1.08rem;
+  line-height:1.3;
+  box-shadow:0 4px 0 #9ac9df;
+}
+#view-learn .stage-button .stage-num{
+  color:#39728f;
+  font-size:.9rem;
+  font-weight:800;
+  letter-spacing:.04em;
+  margin-bottom:3px;
+}
+#view-learn .stage-button.active{
+  background:linear-gradient(145deg,#baf3ff,#54cce9);
+  color:#052b43;
+  border-color:#42c5e8;
+  box-shadow:0 4px 0 #268eae,0 0 18px #40c9ed55;
+}
+#view-learn .stage-button.active .stage-num{color:#15516b}
+#view-learn .stage-intro{
+  background:linear-gradient(120deg,#e4f7ff,#f0f8ff);
+  border-color:#8ed9f2;
+  color:#153d59;
+  font-size:1.12rem;
+  line-height:1.65;
+  padding:17px 19px;
+}
+#view-learn .card{
+  border-color:#9ccfe6;
+  box-shadow:0 5px 0 #b9dceb,0 10px 28px #03172a18;
+}
+#view-learn .card h2{color:#124568}
+#view-learn .sentence{
+  padding:22px;
+  margin:16px 0;
+  border-color:#a9d5e9;
+  background:linear-gradient(145deg,#fff,#f3faff);
+}
+#view-learn .sentence .en{
+  color:#102f49;
+  font-size:clamp(1.35rem,2.3vw,1.65rem);
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+#view-learn .sentence .ja{
+  color:#34566e;
+  font-size:1.18rem;
+  line-height:1.65;
+}
+#view-learn .sentence .word{
+  background:#e5f6ff;
+  border:1px solid #a8d9ee;
+  padding:10px 13px;
+  margin:6px 6px 0 0;
+}
+#view-learn .sentence .word b{color:#07577e;font-size:1.05rem}
+#view-learn .sentence .word span{color:#31566d;font-size:1rem}
+#view-learn button.gold{
+  min-height:58px;
+  padding:13px 19px;
+  border-radius:15px;
+  font-size:1.08rem;
+  font-weight:800;
+  background:linear-gradient(145deg,#fff0b8,#ffd978);
+  color:#382600;
+  border:2px solid #e6bd54;
+  box-shadow:0 3px 0 #d4a93e;
+  touch-action:manipulation;
+}
+#view-learn .quiz-option{
+  min-height:64px;
+  padding:16px 19px;
+  margin:13px 0;
+  border-radius:15px;
+  font-size:1.15rem;
+  line-height:1.45;
+  background:#102e49;
+  color:#f2faff;
+  border:2px solid #426b8a;
+}
+#view-learn .quiz-option.correct{background:#d9f8e7;color:#145c38;border-color:#39b978}
+#view-learn .quiz-option.wrong{background:#fff0f0;color:#8b202a;border-color:#ef858b}
+#view-learn .feedback{
+  font-size:1.18rem;
+  line-height:1.65;
+  padding:18px;
+}
+#view-learn .learning-next,
+#view-learn .actions button{
+  min-height:58px;
+  padding:13px 18px;
+  font-size:1.05rem;
+}
+#view-learn .progress{height:12px;background:#dcecf5}
+#view-learn .progress div{background:linear-gradient(90deg,#149bc6,#43c9df,#f1c65b)}
+#view-learn .video-wrap{
+  border:3px solid #8bcce5;
+  border-radius:18px;
+  box-shadow:0 6px 0 #b9dceb,0 12px 28px #06182b22;
+}
+#view-learn .hint{color:#3d5e75;line-height:1.65}
+@media(max-width:900px){
+  #view-learn .stage-button{min-height:72px;font-size:1.02rem}
+  #view-learn .sentence{padding:19px}
+}
+@media(max-width:600px){
+  #view-learn .stage-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  #view-learn .stage-button{min-height:68px;padding:10px 6px}
+  #view-learn .sentence .en{font-size:1.3rem}
+  #view-learn .sentence .ja{font-size:1.12rem}
+  #view-learn .sentence{padding:17px}
+  #view-learn .actions{display:grid;grid-template-columns:1fr}
+  #view-learn .actions button{width:100%}
+}
+
 </style>
 </head>
 <body>
