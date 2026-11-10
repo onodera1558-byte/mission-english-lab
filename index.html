@@ -291,6 +291,7 @@ document.getElementById('import-button').addEventListener('click',()=>document.g
 
 function speakStop(){if('speechSynthesis' in window)window.speechSynthesis.cancel()}
 function speak(text){
+  alert('音声ボタンが押されました。');
   if(!('speechSynthesis' in window)){alert('このブラウザでは音声読み上げに対応していません。');return}
   const synth=window.speechSynthesis;
   synth.cancel();
