@@ -353,25 +353,75 @@ const seed=[
   sentences:[
    {en:'The spacecraft enters orbit.',ja:'宇宙船は軌道に入る。',words:[['spacecraft','宇宙船'],['orbit','軌道']]},
    {en:'The lander descends to the surface.',ja:'着陸船は地表へ降下する。',words:[['lander','着陸船'],['descend','降下する'],['surface','表面・地表']]},
-   {en:'The rocket flies to the Mun.',ja:'ロケットはムンへ飛んでいく。',words:[['rocket','ロケット'],['fly','飛ぶ']] }
+   {en:'The rocket flies to the Mun.',ja:'ロケットはムンへ飛んでいく。',words:[['rocket','ロケット'],['fly','飛ぶ']]},
+   {en:'The lander uses its engine to slow down.',ja:'着陸船はエンジンを使って速度を落とす。',words:[['engine','エンジン'],['slow down','速度を落とす']]},
+   {en:'Its landing legs touch the ground.',ja:'着陸脚が地面に触れる。',words:[['landing legs','着陸脚'],['touch','触れる'],['ground','地面']]}
   ],
   quizzes:[
    {q:'What does “orbit” mean?',options:['軌道','燃料','推力','エンジン'],answer:0,explain:'orbit は、天体の周りを回る道筋である「軌道」です。'},
-   {q:'Which vehicle goes down to the surface?',options:['lander','engine','fuel tank','solar panel'],answer:0,explain:'lander は、天体に着陸するための着陸船・着陸機です。'}
+   {q:'Which vehicle goes down to the surface?',options:['lander','engine','fuel tank','solar panel'],answer:0,explain:'lander は、天体に着陸するための着陸船・着陸機です。'},
+   {q:'What helps the lander slow down?',options:['Its engine','Its landing legs','Its solar panel','Its antenna'],answer:0,explain:'着陸船はエンジンを噴射して速度を落とし、ゆっくり地表へ降ります。'}
   ]},
  {id:'sample-crew-dragon',title:'How Crew Dragon Works',theme:'宇宙船と有人飛行',url:'',start:'00:00',end:'00:00',published:true,
   sentences:[
    {en:'The Crew Dragon is a human-rated spacecraft.',ja:'クルードラゴンは、人間を乗せるための安全認証を受けた宇宙船です。',words:[['human-rated','有人飛行用として認証された'],['spacecraft','宇宙船']]},
    {en:'This means it is capable of carrying humans into space.',ja:'つまり、人間を宇宙へ運ぶことができます。',words:[['capable of','〜する能力がある'],['carry','運ぶ']]},
-   {en:'It was created by a private company called SpaceX.',ja:'これはSpaceXという民間企業によって開発されました。',words:[['private company','民間企業'],['created','作られた・開発された']]}
+   {en:'It was created by a private company called SpaceX.',ja:'これはSpaceXという民間企業によって開発されました。',words:[['private company','民間企業'],['created','作られた・開発された']]},
+   {en:'A Falcon 9 rocket carries it into space.',ja:'ファルコン9ロケットがクルードラゴンを宇宙へ運びます。',words:[['Falcon 9','ファルコン9'],['carry','運ぶ'],['into space','宇宙へ']]},
+   {en:'It can dock with the International Space Station.',ja:'クルードラゴンは国際宇宙ステーションにドッキングできます。',words:[['dock','ドッキングする'],['International Space Station','国際宇宙ステーション']]}
   ],
   quizzes:[
    {q:'What does “capable of” mean?',options:['〜する能力がある','〜の外側に','〜の代わりに','〜の前に'],answer:0,explain:'capable of は「〜する能力がある」という意味です。'},
-   {q:'Which company created Crew Dragon?',options:['SpaceX','NASA','JAXA','ESA'],answer:0,explain:'Crew Dragon は民間企業 SpaceX が開発しました。'}
+   {q:'Which company created Crew Dragon?',options:['SpaceX','NASA','JAXA','ESA'],answer:0,explain:'Crew Dragon は民間企業 SpaceX が開発しました。'},
+   {q:'Which rocket carries Crew Dragon into space?',options:['Falcon 9','Space Launch System','Ariane 6','H3'],answer:0,explain:'Crew DragonはSpaceXのFalcon 9ロケットで打ち上げられます。'}
   ]}
 ];
+// Expand the two built-in lessons once, without duplicating content on later logins.
+const lessonAdditions={
+ 'How to land on the Mun':{
+  sentences:[
+   {en:'The lander uses its engine to slow down.',ja:'着陸船はエンジンを使って速度を落とす。',words:[['engine','エンジン'],['slow down','速度を落とす']]},
+   {en:'Its landing legs touch the ground.',ja:'着陸脚が地面に触れる。',words:[['landing legs','着陸脚'],['touch','触れる'],['ground','地面']]}
+  ],
+  quizzes:[
+   {q:'What helps the lander slow down?',options:['Its engine','Its landing legs','Its solar panel','Its antenna'],answer:0,explain:'着陸船はエンジンを噴射して速度を落とし、ゆっくり地表へ降ります。'}
+  ]
+ },
+ 'How Crew Dragon Works':{
+  sentences:[
+   {en:'A Falcon 9 rocket carries it into space.',ja:'ファルコン9ロケットがクルードラゴンを宇宙へ運びます。',words:[['Falcon 9','ファルコン9'],['carry','運ぶ'],['into space','宇宙へ']]},
+   {en:'It can dock with the International Space Station.',ja:'クルードラゴンは国際宇宙ステーションにドッキングできます。',words:[['dock','ドッキングする'],['International Space Station','国際宇宙ステーション']]}
+  ],
+  quizzes:[
+   {q:'Which rocket carries Crew Dragon into space?',options:['Falcon 9','Space Launch System','Ariane 6','H3'],answer:0,explain:'Crew DragonはSpaceXのFalcon 9ロケットで打ち上げられます。'}
+  ]
+ }
+};
+function upgradeBuiltInMission(m){
+ const add=lessonAdditions[m.title];if(!add)return false;
+ let changed=false;
+ if(!Array.isArray(m.sentences))m.sentences=[];
+ if(!Array.isArray(m.quizzes))m.quizzes=[];
+ for(const item of add.sentences){
+  if(m.sentences.length>=5)break;
+  if(!m.sentences.some(x=>x.en===item.en)){m.sentences.push(structuredClone(item));changed=true;}
+ }
+ for(const item of add.quizzes){
+  if(m.quizzes.length>=3)break;
+  if(!m.quizzes.some(x=>x.q===item.q)){m.quizzes.push(structuredClone(item));changed=true;}
+ }
+ return changed;
+}
 let data=loadData(),currentId=null,draftSentences=[],draftQuizzes=[],editingId=null,quizAnswered={},completed=loadCompleted();
-function loadData(){try{const d=JSON.parse(localStorage.getItem(KEY));return Array.isArray(d)&&d.length?d:structuredClone(seed)}catch(e){return structuredClone(seed)}}
+function loadData(){
+ try{
+  const d=JSON.parse(localStorage.getItem(KEY));
+  const items=Array.isArray(d)&&d.length?d:structuredClone(seed);
+  let changed=false;items.forEach(m=>{if(upgradeBuiltInMission(m))changed=true;});
+  if(changed)localStorage.setItem(KEY,JSON.stringify(items));
+  return items;
+ }catch(e){return structuredClone(seed)}
+}
 function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderHome();renderProgress();if(window.cloudClient)syncCloudMissions().catch(e=>{console.error('Cloud sync:',e);const msg=document.getElementById('form-message');if(msg)msg.textContent='クラウド保存に失敗しました：'+(e.message||e)+'。入力内容はこのブラウザに残っています。';})}
 function loadCompleted(){try{return JSON.parse(localStorage.getItem(KEY+'.completed')||'{}')}catch(e){return {}}}
 function saveCompleted(){
@@ -508,6 +558,11 @@ async function syncCloudMissions(preferCloud=false){
       .order('updated_at',{ascending:false});
     if(error)throw error;
     const cloudMissions=(rows||[]).map(cloudRowToMission);
+    const upgradedCloud=cloudMissions.filter(upgradeBuiltInMission);
+    for(const m of upgradedCloud){
+      const {error:upgradeError}=await cloudClient.from('missions').upsert(cloudMissionToRow(m),{onConflict:'id'});
+      if(upgradeError)throw upgradeError;
+    }
     const norm=v=>String(v||'').trim().toLowerCase();
     const localOnly=data.filter(m=>!m.cloud&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.id)
       && !cloudMissions.some(c=>norm(c.title)===norm(m.title)&&norm(c.theme)===norm(m.theme)&&norm(c.url)===norm(m.url)));
