@@ -195,6 +195,19 @@ input,textarea,select{font-size:16px;min-height:48px}
 #view-learn .sentence-line .en{flex:0 1 auto;min-width:0}
 #view-learn .vocab-line .gold, #view-learn .sentence-line .gold{flex:0 0 auto;white-space:nowrap}
 @media(max-width:600px){#view-learn .vocab-line,#view-learn .sentence-line{flex-wrap:wrap;gap:8px}#view-learn .sentence-line .en{flex:1 1 100%}}
+
+/* Home screen emphasis and simplified learning flow */
+#view-home > .home-title{
+  color:#f2fbff;
+  font-size:clamp(2.65rem,6vw,4.2rem);
+  font-weight:900;
+  letter-spacing:-.035em;
+  line-height:1.12;
+  margin:.35rem 0 1.25rem;
+  text-shadow:0 3px 0 #087da3,0 8px 24px rgba(68,205,239,.28);
+}
+@media(max-width:600px){#view-home > .home-title{font-size:clamp(2.35rem,9vw,3.3rem)}}
+
 </style>
 </head>
 <body>
@@ -227,9 +240,9 @@ input,textarea,select{font-size:16px;min-height:48px}
 </div></header>
 <main>
   <section id="view-home">
-    <div class="eyebrow">Mission Control / Home</div>
-    <h1>英語で、宇宙をもっと知ろう。</h1>
-    <p class="sub">好きな動画を入り口に、英文・単語・クイズに挑戦しよう。</p>
+    
+    <h1 class="home-title">英語で、宇宙をもっと知ろう。</h1>
+    
     <div class="stats">
       <div class="stat"><b id="stat-total">0</b><span>登録ミッション</span></div>
       <div class="stat"><b id="stat-done">0</b><span>クリア済み</span></div>
@@ -287,14 +300,14 @@ input,textarea,select{font-size:16px;min-height:48px}
       <div class="stage-nav" aria-label="学習ステップ">
         <button class="stage-button active" data-stage="video"><span class="stage-num">STEP 1</span>🎬 動画</button>
         <button class="stage-button" data-stage="vocab"><span class="stage-num">STEP 2</span>🔤 単語</button>
-        <button class="stage-button" data-stage="sentences"><span class="stage-num">STEP 3</span>📖 英文・和訳</button>
+        <button class="stage-button" data-stage="sentences"><span class="stage-num">STEP 3</span>📖 文章</button>
         <button class="stage-button" data-stage="quiz"><span class="stage-num">STEP 4</span>⭐ クイズ</button>
       </div>
       <div class="stage-panel active" data-stage-panel="video"><div class="grid">
-        <div class="card span12 video-mission-card"><h2>🎬 動画を見よう</h2><div id="video-box" class="video-wrap"><div style="height:100%;display:grid;place-items:center;color:#4f6c83">YouTube動画</div></div><p class="hint" id="video-range"></p><div class="actions"><button id="restart-video">↻ 区間の最初から</button><button id="open-youtube" class="ghost">YouTubeで開く ↗</button></div><p class="tiny">指定区間は学習ページ内での再生を対象にします。YouTube本体で開いた動画を制限するものではありません。</p><button class="primary learning-next video-next" onclick="showStage('vocab')">単語へすすむ →</button></div>
+        <div class="card span12 video-mission-card"><h2>🎬 動画を見よう</h2><div id="video-box" class="video-wrap"><div style="height:100%;display:grid;place-items:center;color:#4f6c83">YouTube動画</div></div><p class="hint" id="video-range"></p><div class="actions"><button id="restart-video">↻ 区間の最初から</button><button id="open-youtube" class="ghost">YouTubeで開く ↗</button></div><p class="tiny">指定区間は学習ページ内での再生を対象にします。YouTube本体で開いた動画を制限するものではありません。</p><button class="primary learning-next video-next" onclick="showStage('vocab')">ステップ2へ →</button></div>
       </div></div>
-      <div class="stage-panel" data-stage-panel="vocab"><div class="stage-intro">まずは大事な単語をチェック！ 🔎 英文を読むときのヒントになるよ。</div><div class="card"><h2>🔤 英単語をかくにんしよう</h2><div id="vocab-list"></div><div id="no-vocab" class="empty hidden">単語がまだありません。保護者画面で追加してください。</div><div class="actions"><button class="ghost" onclick="showStage('video')">← 動画にもどる</button><button class="primary" onclick="showStage('sentences')">英文・和訳へすすむ →</button></div></div></div>
-      <div class="stage-panel" data-stage-panel="sentences"><div class="stage-intro">文章を読んで、音をかくにんしよう</div><div class="card"><h2>📖 文章を読んでみよう</h2><div id="sentence-list"></div><div id="no-sentences" class="empty hidden">英文がまだありません。保護者画面で追加してください。</div><div class="actions"><button class="ghost" onclick="showStage('vocab')">← 単語にもどる</button><button class="primary" onclick="showStage('quiz')">クイズに挑戦 →</button></div></div></div>
+      <div class="stage-panel" data-stage-panel="vocab"><div class="card"><h2>🔤 英単語をかくにんしよう</h2><div id="vocab-list"></div><div id="no-vocab" class="empty hidden">単語がまだありません。保護者画面で追加してください。</div><div class="actions"><button class="ghost" onclick="showStage('video')">← 動画にもどる</button><button class="primary" onclick="showStage('sentences')">ステップ3へ →</button></div></div></div>
+      <div class="stage-panel" data-stage-panel="sentences"><div class="card"><h2>📖 文章を読んでみよう</h2><div id="sentence-list"></div><div id="no-sentences" class="empty hidden">英文がまだありません。保護者画面で追加してください。</div><div class="actions"><button class="ghost" onclick="showStage('vocab')">← 単語にもどる</button><button class="primary" onclick="showStage('quiz')">クイズに挑戦 →</button></div></div></div>
       <div class="stage-panel" data-stage-panel="quiz"><div class="card"><h2>⭐ クイズに答えよう</h2><div id="quiz-list"></div><div id="no-quizzes" class="empty hidden">クイズがまだありません。</div><div class="actions"><button class="ghost" onclick="showStage('sentences')">← 英文を見直す</button><button id="complete-mission" class="primary">ミッションをクリア 🏆</button></div><p id="learn-feedback" class="hint" role="status"></p></div></div>
     </div>
   </section>
