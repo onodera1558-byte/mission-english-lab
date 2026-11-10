@@ -54,6 +54,30 @@ input,textarea,select{font-size:16px;min-height:48px}
 </style>
 </head>
 <body>
+
+<div id="cloud-panel" style="position:fixed;inset:0;z-index:1000;background:#071321ee;display:grid;place-items:center;padding:18px">
+  <div style="background:#fff;border:2px solid #b8dff2;border-radius:20px;padding:22px;max-width:560px;width:100%;color:#17324c;max-height:90vh;overflow:auto">
+    <h2>🚀 Mission English Lab — クラウド接続</h2>
+    <p>最初にSupabaseの接続情報を入力します。公開キーはブラウザで使えるキーです。<b>secret / service_roleキーは入力しないでください。</b></p>
+    <label style="color:#17324c" for="cloud-url">Project URL</label>
+    <input id="cloud-url" placeholder="https://xxxxxxxx.supabase.co" autocomplete="url">
+    <label style="color:#17324c" for="cloud-key">Publishable key</label>
+    <input id="cloud-key" placeholder="sb_publishable_..." autocomplete="off">
+    <div class="divider"></div>
+    <h3>保護者アカウントでログイン</h3>
+    <label style="color:#17324c" for="cloud-email">メールアドレス</label>
+    <input id="cloud-email" type="email" placeholder="登録したメールアドレス" autocomplete="username">
+    <label style="color:#17324c" for="cloud-password">パスワード</label>
+    <input id="cloud-password" type="password" placeholder="Supabaseで設定したパスワード" autocomplete="current-password">
+    <p id="cloud-message" class="hint" role="status"></p>
+    <div class="actions">
+      <button id="cloud-connect" class="primary">接続してログイン</button>
+      <button id="cloud-local" class="ghost">今はローカル版を使う</button>
+    </div>
+    <p class="tiny">接続情報はこの端末のブラウザに保存します。パスワードは保存しません。iPadでもクラウドを使う場合は、iPad側でも接続情報を入力してログインしてください。</p>
+  </div>
+</div>
+
 <header><div class="top">
   <div class="brand"><div class="logo">🚀</div><div>MISSION ENGLISH LAB<small>SCIENCE × ENGLISH MISSIONS</small></div></div>
   <nav>
@@ -80,7 +104,7 @@ input,textarea,select{font-size:16px;min-height:48px}
   <section id="view-manage" class="hidden">
     <div class="eyebrow">Mission Builder / Parent</div>
     <h1>教材の作成・編集</h1>
-    <p class="sub">動画の区間、英文、単語、クイズを登録できます。教材はこのブラウザ内に保存されます。</p>
+    <p class="sub">動画の区間、英文、単語、クイズを登録できます。ログイン中は教材をクラウドにも保存します。</p>
     <div class="grid">
       <div class="card span7">
         <div class="row"><h2>1. 動画の情報</h2><span class="badge">教材設定</span></div>
@@ -149,7 +173,8 @@ input,textarea,select{font-size:16px;min-height:48px}
     <p class="hint">ブラウザのデータを消去すると記録が失われることがあります。ときどきバックアップを保存してください。</p>
   </section>
 </main>
-<footer>Mission English Lab · 試作品 v1 · 教材と学習記録はこのブラウザ内に保存されます。</footer>
+<footer>Mission English Lab · 試作品 v2 · ログイン時は教材をSupabaseに同期します。学習記録は現在このブラウザ内に保存されます。</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const KEY='missionEnglishLab.v1';
 const seed=[
@@ -176,7 +201,7 @@ const seed=[
 ];
 let data=loadData(),currentId=null,draftSentences=[],draftQuizzes=[],editingId=null,quizAnswered={},completed=loadCompleted();
 function loadData(){try{const d=JSON.parse(localStorage.getItem(KEY));return Array.isArray(d)&&d.length?d:structuredClone(seed)}catch(e){return structuredClone(seed)}}
-function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderHome();renderProgress()}
+function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderHome();renderProgress();if(window.cloudClient)syncCloudMissions().catch(e=>{console.error('Cloud sync:',e);const msg=document.getElementById('form-message');if(msg)msg.textContent='クラウド保存に失敗しました：'+(e.message||e)+'。入力内容はこのブラウザに残っています。';})}
 function loadCompleted(){try{return JSON.parse(localStorage.getItem(KEY+'.completed')||'{}')}catch(e){return {}}}
 function saveCompleted(){localStorage.setItem(KEY+'.completed',JSON.stringify(completed))}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -214,8 +239,45 @@ function renderEditor(){document.getElementById('editor-items').innerHTML=(draft
 function removeSentence(i){draftSentences.splice(i,1);renderEditor()}function removeQuiz(i){draftQuizzes.splice(i,1);renderEditor()}
 document.getElementById('add-sentence').addEventListener('click',()=>{const en=document.getElementById('s-en').value.trim(),ja=document.getElementById('s-ja').value.trim(),raw=document.getElementById('s-words').value.trim();if(!en||!ja){alert('英文と日本語訳を入力してください。');return}const words=raw?raw.split(',').map(x=>{const p=x.split('=');return[p[0]?.trim()||'',p.slice(1).join('=').trim()||'意味を追加してください']}).filter(x=>x[0]):[];draftSentences.push({en,ja,words});document.getElementById('s-en').value='';document.getElementById('s-ja').value='';document.getElementById('s-words').value='';renderEditor()});
 document.getElementById('add-quiz').addEventListener('click',()=>{const q=document.getElementById('q-question').value.trim(),opts=document.getElementById('q-options').value.split('|').map(x=>x.trim()).filter(Boolean),answer=Number(document.getElementById('q-answer').value)-1,explain=document.getElementById('q-explain').value.trim();if(!q||opts.length!==4){alert('問題と、| で区切った4つの選択肢を入力してください。');return}draftQuizzes.push({q,options:opts,answer,explain});['q-question','q-options','q-explain'].forEach(id=>document.getElementById(id).value='');renderEditor()});
-function saveMission(published){const title=document.getElementById('m-title').value.trim(),theme=document.getElementById('m-theme').value.trim(),url=document.getElementById('m-url').value.trim(),start=document.getElementById('m-start').value.trim()||'00:00',end=document.getElementById('m-end').value.trim()||'00:00';if(!title){alert('教材タイトルを入力してください。');return}if(url&&!ytId(url)){alert('YouTube URLを確認してください。');return}const a=seconds(start),b=seconds(end);if(!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<a){alert('開始・終了時刻を確認してください。例：00:15、03:24。終了時刻は開始時刻より後にしてください。');return}const id=editingId||('mission-'+Date.now());const old=data.find(m=>m.id===id);const obj={id,title,theme,url,start,end,transcript:document.getElementById('m-transcript').value,published:published||(old?.published||false),sentences:draftSentences,quizzes:draftQuizzes};if(old)data=data.map(m=>m.id===id?obj:m);else data.unshift(obj);editingId=id;persist();document.getElementById('edit-status').textContent=published?'公開済み':'保存済み';document.getElementById('form-message').textContent=published?'教材を保存して公開しました。':'教材を保存しました。';renderEditor()}
-document.getElementById('save-mission').addEventListener('click',()=>saveMission(false));document.getElementById('publish-mission').addEventListener('click',()=>saveMission(true));document.getElementById('delete-mission').addEventListener('click',()=>{if(!editingId){alert('削除する教材を開いてください。');return}if(!confirm('この教材を削除しますか？'))return;data=data.filter(m=>m.id!==editingId);delete completed[editingId];saveCompleted();persist();resetForm();showView('home')});
+function saveMission(published){
+  const title=document.getElementById('m-title').value.trim(),theme=document.getElementById('m-theme').value.trim(),url=document.getElementById('m-url').value.trim(),start=document.getElementById('m-start').value.trim()||'00:00',end=document.getElementById('m-end').value.trim()||'00:00';
+  const msg=document.getElementById('form-message');
+  if(!title){alert('教材タイトルを入力してください。');return}
+  if(url&&!ytId(url)){alert('YouTube URLを確認してください。');return}
+  const a=seconds(start),b=seconds(end);
+  if(!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<a){alert('開始・終了時刻を確認してください。例：00:15、03:24。終了時刻は開始時刻より後にしてください。');return}
+  const originalId=editingId;
+  let id=editingId||crypto.randomUUID();
+  let old=data.find(m=>m.id===id);
+  const isUuid=x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x||'');
+  // Seed/demo missions use non-UUID IDs, which cannot be upserted into a UUID-backed Supabase table.
+  if(cloudClient && old && !old.cloud && !isUuid(id)) id=crypto.randomUUID();
+  const obj={id,title,theme,url,start,end,transcript:document.getElementById('m-transcript').value,published:published||(old?.published||false),sentences:draftSentences,quizzes:draftQuizzes, ...(cloudClient?{cloud:true}:{})};
+  if(old)data=data.map(m=>m.id===originalId?obj:m);else data.unshift(obj);
+  editingId=id;
+  try {
+    localStorage.setItem(KEY,JSON.stringify(data));
+    renderHome();renderProgress();renderEditor();
+  } catch(e) {
+    msg.textContent='この端末への保存に失敗しました：'+(e.message||e);
+    return;
+  }
+  document.getElementById('edit-status').textContent=published?'公開済み':'保存済み';
+  msg.textContent=cloudClient?'クラウドに保存中です…':'この端末に保存しました。クラウド保存にはログインが必要です。';
+  if(cloudClient){
+    syncCloudMissions().then(()=>{
+      msg.textContent='教材をクラウドに保存しました。';
+      document.getElementById('edit-status').textContent='クラウド保存済み';
+    }).catch(e=>{
+      msg.textContent='クラウド保存に失敗しました：'+(e.message||e);
+      console.error('Cloud save failed:',e);
+    });
+  } else {
+    msg.textContent='この端末に保存しました。クラウド保存にはログインが必要です。';
+  }
+}
+document.getElementById('save-mission').addEventListener('click',()=>{try{saveMission(false)}catch(e){const m=document.getElementById('form-message');if(m)m.textContent='保存処理でエラーが発生しました：'+(e.message||e);console.error(e);alert('保存処理でエラーが発生しました。画面のメッセージを確認してください。')}});
+document.getElementById('publish-mission').addEventListener('click',()=>{try{saveMission(true)}catch(e){const m=document.getElementById('form-message');if(m)m.textContent='保存処理でエラーが発生しました：'+(e.message||e);console.error(e);alert('保存処理でエラーが発生しました。画面のメッセージを確認してください。')}});document.getElementById('delete-mission').addEventListener('click',()=>{if(!editingId){alert('削除する教材を開いてください。');return}if(!confirm('この教材を削除しますか？'))return;data=data.filter(m=>m.id!==editingId);delete completed[editingId];saveCompleted();persist();resetForm();showView('home')});
 function renderProgress(){const el=document.getElementById('progress-list');const rows=data.map(m=>{const c=completed[m.id];return `<div class="card span6"><div class="row"><h3>${esc(m.title)}</h3><span class="badge ${c?'done':''}">${c?'クリア済み':'未クリア'}</span></div><p class="hint">${c?'完了日：'+new Date(c.date).toLocaleString('ja-JP'):'まだ完了記録がありません。'}</p>${c?`<p>クイズ正解：${c.score} / ${c.total}</p>`:''}</div>`}).join('');el.innerHTML=rows||'<div class="empty span12">記録はまだありません。</div>'}
 document.getElementById('export-data').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({data,completed},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mission-english-lab-backup.json';a.click();URL.revokeObjectURL(a.href)});
 document.getElementById('import-button').addEventListener('click',()=>document.getElementById('import-file').click());document.getElementById('import-file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.data))throw Error('format');if(confirm('現在の教材をバックアップの内容で置き換えますか？')){data=d.data;completed=d.completed||{};persist();saveCompleted();resetForm();alert('バックアップを読み込みました。')}}catch(err){alert('バックアップを読み込めませんでした。ファイルを確認してください。')}e.target.value=''});
@@ -236,6 +298,42 @@ function speak(text){
   utterance.onerror=(event)=>console.warn('Speech synthesis error:',event.error);
   setTimeout(()=>{setVoice();try{synth.speak(utterance)}catch(err){console.error(err);alert('音声を再生できませんでした。端末の音量とブラウザ設定を確認してください。')}},100);
 }
+
+
+// Supabase cloud sync: missions table uses title/theme/youtube_url/start_time/end_time/content JSONB.
+let cloudClient=null;
+const CLOUD_CONFIG_KEY='missionEnglishLab.supabaseConfig.v1';
+function cloudConfig(){try{return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'{}')}catch(e){return {}}}
+function setCloudMessage(t){document.getElementById('cloud-message').textContent=t}
+function showCloudPanel(){const c=cloudConfig();document.getElementById('cloud-url').value=c.url||'';document.getElementById('cloud-key').value=c.key||'';document.getElementById('cloud-panel').style.display='grid'}
+function cloudMissionToRow(m){return {id:m.id,title:m.title,theme:m.theme||'',youtube_url:m.url||'',start_time:m.start||'00:00',end_time:m.end||'00:00',content:{sentences:m.sentences||[],quizzes:m.quizzes||[],transcript:m.transcript||'',published:!!m.published},updated_at:new Date().toISOString()}}
+function cloudRowToMission(r){const c=r.content||{};return {id:r.id,title:r.title,theme:r.theme||'',url:r.youtube_url||'',start:r.start_time||'00:00',end:r.end_time||'00:00',transcript:c.transcript||'',published:c.published!==false,sentences:Array.isArray(c.sentences)?c.sentences:[],quizzes:Array.isArray(c.quizzes)?c.quizzes:[],cloud:true}}
+async function syncCloudMissions(){
+  if(!cloudClient)return;
+  const user= (await cloudClient.auth.getUser()).data.user;if(!user)return;
+  const cloudItems=data.filter(m=>m.cloud||/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.id));
+  for(const m of cloudItems){const row=cloudMissionToRow(m);const {error}=await cloudClient.from('missions').upsert(row,{onConflict:'id'});if(error)throw error;}
+  const {data:rows,error}=await cloudClient.from('missions').select('id,title,theme,youtube_url,start_time,end_time,content,updated_at').order('updated_at',{ascending:false});
+  if(error)throw error;
+  const localOnly=data.filter(m=>!m.cloud&&!(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.id)));
+  data=[...localOnly,...(rows||[]).map(cloudRowToMission)];
+  localStorage.setItem(KEY,JSON.stringify(data));renderHome();renderProgress();renderEditor();
+}
+async function connectCloud(){
+  const url=document.getElementById('cloud-url').value.trim(),key=document.getElementById('cloud-key').value.trim(),email=document.getElementById('cloud-email').value.trim(),password=document.getElementById('cloud-password').value;
+  if(!url.startsWith('https://')||!key.startsWith('sb_publishable_')){setCloudMessage('Project URLとsb_publishable_で始まるPublishable keyを確認してください。');return}
+  if(!email||!password){setCloudMessage('登録したメールアドレスとパスワードを入力してください。');return}
+  if(!window.supabase){setCloudMessage('接続ライブラリを読み込めませんでした。ネット接続を確認してください。');return}
+  localStorage.setItem(CLOUD_CONFIG_KEY,JSON.stringify({url,key}));
+  cloudClient=window.supabase.createClient(url,key);
+  setCloudMessage('ログイン中です…');
+  const {data:authData,error}=await cloudClient.auth.signInWithPassword({email,password});
+  if(error){setCloudMessage('ログインできませんでした：'+error.message);return}
+  try{await syncCloudMissions();document.getElementById('cloud-password').value='';document.getElementById('cloud-panel').style.display='none';alert('Supabaseに接続しました。教材はクラウドと同期されます。')}catch(e){setCloudMessage('ログインできましたが、教材の同期に失敗しました：'+(e.message||e));}
+}
+document.getElementById('cloud-connect').addEventListener('click',()=>connectCloud().catch(e=>setCloudMessage('エラー：'+(e.message||e))));
+document.getElementById('cloud-local').addEventListener('click',()=>{document.getElementById('cloud-panel').style.display='none'});
+window.addEventListener('load',()=>{const c=cloudConfig();if(c.url&&c.key){document.getElementById('cloud-url').value=c.url;document.getElementById('cloud-key').value=c.key;}});
 
 renderHome();renderProgress();renderEditor();
 </script>
