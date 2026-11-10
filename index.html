@@ -315,8 +315,15 @@ async function syncCloudMissions(){
   for(const m of cloudItems){const row=cloudMissionToRow(m);const {error}=await cloudClient.from('missions').upsert(row,{onConflict:'id'});if(error)throw error;}
   const {data:rows,error}=await cloudClient.from('missions').select('id,title,theme,youtube_url,start_time,end_time,content,updated_at').order('updated_at',{ascending:false});
   if(error)throw error;
-  const localOnly=data.filter(m=>!m.cloud&&!(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.id)));
-  data=[...localOnly,...(rows||[]).map(cloudRowToMission)];
+  const cloudMissions=(rows||[]).map(cloudRowToMission);
+  // Do not show the built-in sample again when the same lesson already exists in Supabase.
+  // Match by title, theme and video URL because seed IDs differ from cloud UUIDs.
+  const norm=v=>String(v||'').trim().toLowerCase();
+  const localOnly=data.filter(m=>{
+    if(m.cloud||/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.id)) return false;
+    return !cloudMissions.some(c=>norm(c.title)===norm(m.title)&&norm(c.theme)===norm(m.theme)&&norm(c.url)===norm(m.url));
+  });
+  data=[...localOnly,...cloudMissions];
   localStorage.setItem(KEY,JSON.stringify(data));renderHome();renderProgress();renderEditor();
 }
 async function connectCloud(){
@@ -326,6 +333,7 @@ async function connectCloud(){
   if(!window.supabase){setCloudMessage('接続ライブラリを読み込めませんでした。ネット接続を確認してください。');return}
   localStorage.setItem(CLOUD_CONFIG_KEY,JSON.stringify({url,key}));
   cloudClient=window.supabase.createClient(url,key);
+  window.cloudClient=cloudClient;
   setCloudMessage('ログイン中です…');
   const {data:authData,error}=await cloudClient.auth.signInWithPassword({email,password});
   if(error){setCloudMessage('ログインできませんでした：'+error.message);return}
