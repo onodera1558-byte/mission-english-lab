@@ -865,8 +865,17 @@ document.getElementById('mission-json-file').addEventListener('change',async(eve
     document.getElementById('m-title').value=lesson.title;
     document.getElementById('m-theme').value=String(lesson.theme||'');
     document.getElementById('m-url').value=String(lesson.url||'');
-    document.getElementById('m-start').value=String(lesson.start||'00:00');
-    document.getElementById('m-end').value=String(lesson.end||'00:00');
+    const normalizeTime=(value)=>{
+      if(value===null||value===undefined||value==='')return '00:00';
+      if(typeof value==='number'||/^\d+(\.\d+)?$/.test(String(value).trim())){
+        const total=Math.max(0,Math.floor(Number(value)));
+        const minutes=Math.floor(total/60),seconds=total%60;
+        return `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+      }
+      return String(value).trim();
+    };
+    document.getElementById('m-start').value=normalizeTime(lesson.start);
+    document.getElementById('m-end').value=normalizeTime(lesson.end);
     document.getElementById('m-transcript').value=String(lesson.transcript||'');
     draftSentences=sentences;
     draftQuizzes=quizzes;
