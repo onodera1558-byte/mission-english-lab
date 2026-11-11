@@ -371,6 +371,15 @@ input,textarea,select{font-size:16px;min-height:48px}
           <div><label for="m-start">開始時刻（分:秒）</label><input id="m-start" value="00:15" placeholder="00:15"></div>
           <div><label for="m-end">終了時刻（分:秒）</label><input id="m-end" value="03:24" placeholder="03:24"></div>
         </div>
+        <label for="m-playback-rate">動画の再生速度</label>
+        <select id="m-playback-rate">
+          <option value="0.75">0.75倍（ゆっくり）</option>
+          <option value="1" selected>1.0倍（標準）</option>
+          <option value="1.25">1.25倍</option>
+          <option value="1.5">1.5倍</option>
+          <option value="2">2.0倍</option>
+        </select>
+        <p class="hint">YouTubeの標準再生速度から選びます。以前の0.8倍に近い速度は0.75倍です。</p>
         <p class="hint">例：00:15〜03:24。学習画面ではこの区間を開始位置・終了位置として設定します。</p>
         <label for="m-transcript">字幕・文字起こし（任意）</label><textarea id="m-transcript" placeholder="動画の英文字幕を貼り付けると、英文を作るときの参考にできます。"></textarea>
         <div class="actions"><button class="primary" id="save-mission">教材を保存</button><button id="reset-form" class="ghost">入力をクリア</button></div>
@@ -552,12 +561,55 @@ let currentStage='video';
 const stageInfo={video:{heading:'STEP 1：まずは動画を見よう！',instruction:'映像を見て、何が起きているか考えてみよう。'},vocab:{heading:'STEP 2：大事な単語をチェック！',instruction:'単語の意味と発音を確認しよう。'},sentences:{heading:'STEP 3：英文と意味を読もう！',instruction:'英文を聞いて、自分で意味を考えてから和訳を確認しよう。'},quiz:{heading:'STEP 4：クイズに挑戦！',instruction:'学んだ単語と英文を思い出して答えよう。'}};
 function showStage(stage,scrollPage=true){currentStage=stage;document.querySelectorAll('[data-stage-panel]').forEach(p=>p.classList.toggle('active',p.dataset.stagePanel===stage));document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('active',b.dataset.stage===stage));if(stage==='vocab'||stage==='sentences')speakStop();if(scrollPage)window.scrollTo({top:0,behavior:'smooth'});}
 document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',()=>showStage(b.dataset.stage)));
+let currentYTPlayer=null;
+let youtubeApiPromise=null;
+function loadYouTubeIframeAPI(){
+  if(window.YT&&window.YT.Player)return Promise.resolve(window.YT);
+  if(youtubeApiPromise)return youtubeApiPromise;
+  youtubeApiPromise=new Promise((resolve,reject)=>{
+    const previous=window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady=()=>{
+      try{if(typeof previous==='function')previous()}catch(e){}
+      resolve(window.YT);
+    };
+    if(!document.querySelector('script[data-youtube-iframe-api]')){
+      const script=document.createElement('script');
+      script.src='https://www.youtube.com/iframe_api';
+      script.dataset.youtubeIframeApi='1';
+      script.onerror=()=>{youtubeApiPromise=null;reject(new Error('YouTubeプレーヤーを読み込めませんでした。'))};
+      document.head.appendChild(script);
+    }
+  });
+  return youtubeApiPromise;
+}
+function mountYouTubePlayer(videoId,startSeconds,endSeconds,rate){
+  loadYouTubeIframeAPI().then(YT=>{
+    if(!document.getElementById('yt-player'))return;
+    currentYTPlayer=new YT.Player('yt-player',{
+      videoId,
+      playerVars:{rel:0,playsinline:1,start:Number.isFinite(startSeconds)?Math.max(0,Math.floor(startSeconds)):0,
+        ...(Number.isFinite(endSeconds)&&endSeconds>startSeconds?{end:Math.floor(endSeconds)}:{}),origin:location.origin},
+      events:{
+        onReady:event=>{try{event.target.setPlaybackRate(rate)}catch(e){console.warn('Playback rate unavailable:',e)}},
+        onStateChange:event=>{if(event.data===YT.PlayerState.PLAYING){try{event.target.setPlaybackRate(rate)}catch(e){}}},
+        onError:event=>console.warn('YouTube player error:',event.data)
+      }
+    });
+  }).catch(error=>{
+    const host=document.getElementById('video-box');
+    if(host)host.innerHTML='<div style="height:100%;display:grid;place-items:center;color:#4f6c83;padding:20px;text-align:center">動画プレーヤーを読み込めませんでした。通信状態を確認してください。</div>';
+    console.warn(error);
+  });
+}
 function renderLearn(preserveScroll=false){
  const m=data.find(x=>x.id===currentId);if(!m){document.getElementById('learn-empty').classList.remove('hidden');document.getElementById('learn-content').classList.add('hidden');return}
  document.getElementById('learn-empty').classList.add('hidden');document.getElementById('learn-content').classList.remove('hidden');
- const id=ytId(m.url),a=seconds(m.start),b=seconds(m.end);let embed='';
- if(id){let params='rel=0&playsinline=1';if(Number.isFinite(a)&&a>0)params+='&start='+Math.floor(a);if(Number.isFinite(b)&&b>a)params+='&end='+Math.floor(b);embed=`<iframe id="ytframe" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}" title="${esc(m.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`}else embed='<div style="height:100%;display:grid;place-items:center;color:#4f6c83;padding:20px;text-align:center">この教材には動画URLがありません。保護者画面から動画を登録できます。</div>';
- document.getElementById('video-box').innerHTML=embed;document.getElementById('video-range').textContent=id&&b>a?`指定区間：${timeLabel(m.start)}〜${timeLabel(m.end)}`:'再生区間が設定されていません。';document.getElementById('open-youtube').onclick=()=>{if(m.url)window.open(m.url,'_blank','noopener')};
+ const id=ytId(m.url),a=seconds(m.start),b=seconds(m.end),rate=Number(m.playbackRate)||1;
+ if(currentYTPlayer){try{currentYTPlayer.destroy()}catch(e){}currentYTPlayer=null;}
+ document.getElementById('video-box').innerHTML=id?'<div id="yt-player" style="width:100%;height:100%"></div>':'<div style="height:100%;display:grid;place-items:center;color:#4f6c83;padding:20px;text-align:center">この教材には動画URLがありません。保護者画面から動画を登録できます。</div>';
+ if(id)mountYouTubePlayer(id,a,b,rate);
+ document.getElementById('video-range').textContent=id?`指定区間：${timeLabel(m.start)}〜${timeLabel(m.end)} ／ 再生速度：${rate}倍`:'再生区間が設定されていません。';
+ document.getElementById('open-youtube').onclick=()=>{if(m.url)window.open(m.url,'_blank','noopener')};
  const words=missionVocabulary(m);
  document.getElementById('vocab-list').innerHTML=words.map((w,i)=>`<div class="sentence"><div class="row vocab-line"><div class="vocab-term"><div class="en">${esc(w.en)}</div><div class="ja">${esc(w.ja)}</div></div><button class="gold" type="button" data-speak-vocab="${i}">🔊 聞く</button></div></div>`).join('');document.getElementById('no-vocab').classList.toggle('hidden',words.length>0);
  document.getElementById('sentence-list').innerHTML=m.sentences.map((s,i)=>`<div class="sentence"><div class="row sentence-line"><div class="en">${esc(s.en)}</div><button class="gold" type="button" data-speak-sentence="${i}">🔊 聞く</button></div><details style="margin-top:12px"><summary style="cursor:pointer;font-weight:800;color:#087da3;font-size:1.05rem">意味</summary><div class="ja">${esc(s.ja)}</div></details><div style="margin-top:10px">${s.words.map(w=>`<span class="word"><b>${esc(w[0])}</b><span>${esc(w[1])}</span></span>`).join('')}</div></div>`).join('');document.getElementById('no-sentences').classList.toggle('hidden',m.sentences.length>0);
@@ -590,7 +642,7 @@ function playQuizSound(isCorrect){
 function answerQuiz(i,j){const m=data.find(x=>x.id===currentId);if(!m||!m.quizzes[i]||quizAnswered[i]!==undefined)return;const isCorrect=j===m.quizzes[i].answer;quizAnswered[i]=j;playQuizSound(isCorrect);renderLearn(true);const correct=m.quizzes.filter((q,k)=>quizAnswered[k]===q.answer).length;document.getElementById('learn-feedback').textContent=`クイズ：${correct} / ${Object.keys(quizAnswered).length}問 正解`;updateLearnProgress();const result=document.getElementById(`qfeedback-${i}`);if(result){result.classList.remove('quiz-result-pop');void result.offsetWidth;result.classList.add('quiz-result-pop');}}
 function updateLearnProgress(){const m=data.find(x=>x.id===currentId);if(!m)return;const count=document.getElementById('step-count'),bar=document.getElementById('step-bar');if(!count||!bar)return;const total=m.sentences.length+m.quizzes.length,done=m.sentences.length+Object.keys(quizAnswered).length;count.textContent=`${Math.min(done,total)} / ${total}`;bar.style.width=(total?Math.min(done/total,1)*100:0)+'%';}
 document.getElementById('complete-mission').addEventListener('click',()=>{if(!currentId)return;completed[currentId]={date:new Date().toISOString(),score:data.find(x=>x.id===currentId).quizzes.filter((q,i)=>quizAnswered[i]===q.answer).length,total:data.find(x=>x.id===currentId).quizzes.length};saveCompleted();document.getElementById('learn-feedback').textContent='ミッション完了！学習記録に保存しました。';updateLearnProgress();renderHome();renderProgress()});
-function resetForm(){editingId=null;draftSentences=[];draftQuizzes=[];draftVocabulary=[];draftThumbnail='';document.getElementById('m-thumbnail-file').value='';document.getElementById('m-thumbnail-preview').src='';document.getElementById('m-thumbnail-preview').classList.add('hidden');['m-title','m-theme','m-url','m-transcript'].forEach(id=>document.getElementById(id).value='');document.getElementById('m-start').value='00:00';document.getElementById('m-end').value='00:00';document.getElementById('form-message').textContent='';document.getElementById('edit-status').textContent='新規教材';renderEditor()}
+function resetForm(){editingId=null;draftSentences=[];draftQuizzes=[];draftVocabulary=[];draftThumbnail='';document.getElementById('m-thumbnail-file').value='';document.getElementById('m-thumbnail-preview').src='';document.getElementById('m-thumbnail-preview').classList.add('hidden');['m-title','m-theme','m-url','m-transcript'].forEach(id=>document.getElementById(id).value='');document.getElementById('m-start').value='00:00';document.getElementById('m-end').value='00:00';document.getElementById('m-playback-rate').value='1';document.getElementById('form-message').textContent='';document.getElementById('edit-status').textContent='新規教材';renderEditor()}
 document.getElementById('reset-form').addEventListener('click',resetForm);
 
 document.getElementById('choose-thumbnail').addEventListener('click',()=>document.getElementById('m-thumbnail-file').click());
@@ -620,7 +672,7 @@ document.getElementById('m-thumbnail-file').addEventListener('change',event=>{
   reader.readAsDataURL(file);
 });
 
-function editMission(id){const m=data.find(x=>x.id===id);if(!m)return;editingId=id;draftSentences=structuredClone(m.sentences);draftQuizzes=structuredClone(m.quizzes);draftVocabulary=structuredClone(missionVocabulary(m));document.getElementById('m-title').value=m.title;document.getElementById('m-theme').value=m.theme||'';document.getElementById('m-url').value=m.url||'';document.getElementById('m-start').value=m.start||'00:00';document.getElementById('m-end').value=m.end||'00:00';document.getElementById('m-transcript').value=m.transcript||'';draftThumbnail=m.thumbnail||'';document.getElementById('m-thumbnail-file').value='';const thumbPreview=document.getElementById('m-thumbnail-preview');thumbPreview.src=draftThumbnail;thumbPreview.classList.toggle('hidden',!draftThumbnail);document.getElementById('edit-status').textContent='編集中';showView('manage');renderEditor()}
+function editMission(id){const m=data.find(x=>x.id===id);if(!m)return;editingId=id;draftSentences=structuredClone(m.sentences);draftQuizzes=structuredClone(m.quizzes);draftVocabulary=structuredClone(missionVocabulary(m));document.getElementById('m-title').value=m.title;document.getElementById('m-theme').value=m.theme||'';document.getElementById('m-url').value=m.url||'';document.getElementById('m-start').value=m.start||'00:00';document.getElementById('m-end').value=m.end||'00:00';document.getElementById('m-playback-rate').value=String(m.playbackRate||1);document.getElementById('m-transcript').value=m.transcript||'';draftThumbnail=m.thumbnail||'';document.getElementById('m-thumbnail-file').value='';const thumbPreview=document.getElementById('m-thumbnail-preview');thumbPreview.src=draftThumbnail;thumbPreview.classList.toggle('hidden',!draftThumbnail);document.getElementById('edit-status').textContent='編集中';showView('manage');renderEditor()}
 function renderEditor(){document.getElementById('editor-items').innerHTML=(draftSentences.length||draftQuizzes.length)?draftSentences.map((s,i)=>`<div class="sentence"><div class="row"><b>${esc(s.en)}</b><button class="small" onclick="removeSentence(${i})">削除</button></div><div class="hint">${esc(s.ja)}</div><div class="tiny">${s.words.map(w=>esc(w[0])+'：'+esc(w[1])).join(' / ')}</div></div>`).join('')+draftQuizzes.map((q,i)=>`<div class="sentence"><div class="row"><b>Q${i+1}. ${esc(q.q)}</b><button class="small" onclick="removeQuiz(${i})">削除</button></div><div class="hint">${q.options.map((o,j)=>(j+1)+'. '+esc(o)+(j===q.answer?' ✓':'')).join('　')}</div></div>`).join(''):'<div class="empty">英文やクイズを追加すると、ここに表示されます。</div>'}
 function removeSentence(i){draftSentences.splice(i,1);renderEditor()}function removeQuiz(i){draftQuizzes.splice(i,1);renderEditor()}
 document.getElementById('add-sentence').addEventListener('click',()=>{const en=document.getElementById('s-en').value.trim(),ja=document.getElementById('s-ja').value.trim(),raw=document.getElementById('s-words').value.trim();if(!en||!ja){alert('英文と日本語訳を入力してください。');return}const words=raw?raw.split(',').map(x=>{const p=x.split('=');return[p[0]?.trim()||'',p.slice(1).join('=').trim()||'意味を追加してください']}).filter(x=>x[0]):[];draftSentences.push({en,ja,words});document.getElementById('s-en').value='';document.getElementById('s-ja').value='';document.getElementById('s-words').value='';renderEditor()});
@@ -639,7 +691,7 @@ function saveMission(published){
   // Seed/demo missions use non-UUID IDs, which cannot be upserted into a UUID-backed Supabase table.
   if(cloudClient && old && !old.cloud && !isUuid(id)) id=crypto.randomUUID();
   const savedVocabulary=draftVocabulary.length?draftVocabulary:missionVocabulary({sentences:draftSentences});
-   const obj={id,title,theme,url,start,end,transcript:document.getElementById('m-transcript').value,thumbnail:draftThumbnail,published:published||(old?.published||false),sentences:draftSentences,vocabulary:savedVocabulary,quizzes:draftQuizzes, ...(cloudClient?{cloud:true}:{})};
+   const obj={id,title,theme,url,start,end,transcript:document.getElementById('m-transcript').value,playbackRate:Number(document.getElementById('m-playback-rate').value)||1,thumbnail:draftThumbnail,published:published||(old?.published||false),sentences:draftSentences,vocabulary:savedVocabulary,quizzes:draftQuizzes, ...(cloudClient?{cloud:true}:{})};
   if(old)data=data.map(m=>m.id===originalId?obj:m);else data.unshift(obj);
   editingId=id;
   try {
@@ -726,8 +778,8 @@ const CLOUD_CONFIG_KEY='missionEnglishLab.supabaseConfig.v1';
 function cloudConfig(){try{return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'{}')}catch(e){return {}}}
 function setCloudMessage(t){document.getElementById('cloud-message').textContent=t}
 function showCloudPanel(){const c=cloudConfig();document.getElementById('cloud-url').value=c.url||'';document.getElementById('cloud-key').value=c.key||'';document.getElementById('cloud-panel').style.display='grid'}
-function cloudMissionToRow(m){return {id:m.id,title:m.title,theme:m.theme||'',youtube_url:m.url||'',start_time:m.start||'00:00',end_time:m.end||'00:00',content:{sentences:m.sentences||[],vocabulary:m.vocabulary||[],quizzes:m.quizzes||[],transcript:m.transcript||'',thumbnail:m.thumbnail||'',published:!!m.published},updated_at:new Date().toISOString()}}
-function cloudRowToMission(r){const c=r.content||{};return {id:r.id,title:r.title,theme:r.theme||'',url:r.youtube_url||'',start:r.start_time||'00:00',end:r.end_time||'00:00',transcript:c.transcript||'',thumbnail:c.thumbnail||'',published:c.published!==false,sentences:Array.isArray(c.sentences)?c.sentences:[],vocabulary:Array.isArray(c.vocabulary)?c.vocabulary:[],quizzes:Array.isArray(c.quizzes)?c.quizzes:[],cloud:true}}
+function cloudMissionToRow(m){return {id:m.id,title:m.title,theme:m.theme||'',youtube_url:m.url||'',start_time:m.start||'00:00',end_time:m.end||'00:00',content:{sentences:m.sentences||[],vocabulary:m.vocabulary||[],quizzes:m.quizzes||[],transcript:m.transcript||'',thumbnail:m.thumbnail||'',playbackRate:m.playbackRate||1,published:!!m.published},updated_at:new Date().toISOString()}}
+function cloudRowToMission(r){const c=r.content||{};return {id:r.id,title:r.title,theme:r.theme||'',url:r.youtube_url||'',start:r.start_time||'00:00',end:r.end_time||'00:00',transcript:c.transcript||'',thumbnail:c.thumbnail||'',playbackRate:Number(c.playbackRate)||1,published:c.published!==false,sentences:Array.isArray(c.sentences)?c.sentences:[],vocabulary:Array.isArray(c.vocabulary)?c.vocabulary:[],quizzes:Array.isArray(c.quizzes)?c.quizzes:[],cloud:true}}
 async function syncCloudMissions(preferCloud=false){
   if(!cloudClient)return;
   const authResult=await cloudClient.auth.getUser();
