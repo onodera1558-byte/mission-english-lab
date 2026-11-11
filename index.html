@@ -760,7 +760,7 @@ async function connectCloud(){
   setCloudMessage('ログイン中です…');
   const {data:authData,error}=await cloudClient.auth.signInWithPassword({email,password});
   if(error){setCloudMessage('ログインできませんでした：'+error.message);return}
-  try{await syncCloudMissions(true);await syncCloudLearningRecords();document.getElementById('cloud-password').value='';document.getElementById('cloud-panel').style.display='none';alert('Supabaseに接続しました。教材と学習記録をクラウドと同期します。')}catch(e){setCloudMessage('ログインできましたが、同期に失敗しました：'+(e.message||e));}
+  try{await syncCloudMissions(true);await syncCloudLearningRecords();document.getElementById('cloud-password').value='';document.getElementById('cloud-panel').style.display='none';setCloudMessage('Supabaseに接続しました。')}catch(e){setCloudMessage('ログインできましたが、同期に失敗しました：'+(e.message||e));}
 }
 document.getElementById('cloud-connect').addEventListener('click',()=>connectCloud().catch(e=>setCloudMessage('エラー：'+(e.message||e))));
 document.getElementById('cloud-local').addEventListener('click',()=>{document.getElementById('cloud-panel').style.display='none'});
