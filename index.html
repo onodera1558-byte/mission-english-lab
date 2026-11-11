@@ -277,6 +277,19 @@ input,textarea,select{font-size:16px;min-height:48px}
 
 
 
+
+/* fixed26: quiz answer reveal animation */
+@keyframes quizResultIn{
+  0%{opacity:0;transform:translateY(14px) scale(.97)}
+  70%{opacity:1;transform:translateY(-2px) scale(1.01)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.quiz-result-pop{animation:quizResultIn .42s ease-out both}
+.quiz-result-title{font-size:1.55rem;font-weight:900;display:block;line-height:1.35}
+.feedback.good .quiz-result-title{color:#087a46}
+.feedback.try .quiz-result-title{color:#a12b35}
+@media(max-width:600px){.quiz-result-title{font-size:1.4rem}}
+
 /* fixed24: enlarge English quiz question text */
 #view-learn #quiz-list .quiz-question-text{
   font-size:1.4rem;
@@ -530,11 +543,31 @@ function renderLearn(preserveScroll=false){
  document.getElementById('sentence-list').innerHTML=m.sentences.map((s,i)=>`<div class="sentence"><div class="row sentence-line"><div class="en">${esc(s.en)}</div><button class="gold" type="button" data-speak-sentence="${i}">🔊 聞く</button></div><details style="margin-top:12px"><summary style="cursor:pointer;font-weight:800;color:#087da3;font-size:1.05rem">意味</summary><div class="ja">${esc(s.ja)}</div></details><div style="margin-top:10px">${s.words.map(w=>`<span class="word"><b>${esc(w[0])}</b><span>${esc(w[1])}</span></span>`).join('')}</div></div>`).join('');document.getElementById('no-sentences').classList.toggle('hidden',m.sentences.length>0);
 document.querySelectorAll('[data-speak-vocab]').forEach(btn=>btn.addEventListener('click',()=>{speak(words[Number(btn.dataset.speakVocab)].en)}));
 document.querySelectorAll('[data-speak-sentence]').forEach(btn=>btn.addEventListener('click',()=>{speak(m.sentences[Number(btn.dataset.speakSentence)].en)}));
- document.getElementById('quiz-list').innerHTML=m.quizzes.map((q,i)=>`<div class="sentence"><h3 style="font-size:1.2rem">問題 ${i+1} / ${m.quizzes.length}</h3><div class="row" style="align-items:center;gap:8px;margin-bottom:10px"><div class="quiz-question-text">${esc(q.q)}</div><button class="gold" type="button" data-speak-quiz="${i}">🔊 聞く</button></div>${q.ja?`<details class="quiz-meaning" style="margin:0 0 12px"><summary style="cursor:pointer;font-weight:800;color:#087da3">意味を確認する</summary><div class="ja" style="margin-top:8px">${esc(q.ja)}</div></details>`:''}${q.options.map((o,j)=>`<button class="quiz-option ${quizAnswered[i]===j?(j===q.answer?'correct':'wrong'):''}" ${quizAnswered[i]!==undefined?'disabled':''} onclick="answerQuiz(${i},${j})">${j+1}. ${esc(o)}</button>`).join('')}<div id="qfeedback-${i}" class="${quizAnswered[i]!==undefined?'feedback '+(quizAnswered[i]===q.answer?'good':'try'):'hint'}">${quizAnswered[i]!==undefined?`<strong>${quizAnswered[i]===q.answer?'🎉 正解！':'💡 もう一度確認しよう'}</strong><div style="margin-top:5px;font-size:1rem;font-weight:600">${esc(q.explain||'英文と単語を見直してみよう。')}</div>`:''}</div></div>`).join('');document.getElementById('no-quizzes').classList.toggle('hidden',m.quizzes.length>0);
+ document.getElementById('quiz-list').innerHTML=m.quizzes.map((q,i)=>`<div class="sentence"><h3 style="font-size:1.2rem">問題 ${i+1} / ${m.quizzes.length}</h3><div class="row" style="align-items:center;gap:8px;margin-bottom:10px"><div class="quiz-question-text">${esc(q.q)}</div><button class="gold" type="button" data-speak-quiz="${i}">🔊 聞く</button></div>${q.ja?`<details class="quiz-meaning" style="margin:0 0 12px"><summary style="cursor:pointer;font-weight:800;color:#087da3">意味を確認する</summary><div class="ja" style="margin-top:8px">${esc(q.ja)}</div></details>`:''}${q.options.map((o,j)=>`<button class="quiz-option ${quizAnswered[i]===j?(j===q.answer?'correct':'wrong'):''}" ${quizAnswered[i]!==undefined?'disabled':''} onclick="answerQuiz(${i},${j})">${j+1}. ${esc(o)}</button>`).join('')}<div id="qfeedback-${i}" class="${quizAnswered[i]!==undefined?'feedback '+(quizAnswered[i]===q.answer?'good':'try'):'hint'} ${quizAnswered[i]!==undefined?'quiz-result-pop':''}" aria-live="polite">${quizAnswered[i]!==undefined?`<strong class="quiz-result-title">${quizAnswered[i]===q.answer?'🎉 正解！ イエーイ！':'💡 もう一度確認しよう'}</strong><div style="margin-top:7px;font-size:1rem;font-weight:650">${esc(q.explain||'英文と単語を見直してみよう。')}</div>`:''}</div></div>`).join('');document.getElementById('no-quizzes').classList.toggle('hidden',m.quizzes.length>0);
  document.querySelectorAll('[data-speak-quiz]').forEach(btn=>btn.addEventListener('click',()=>{speak(m.quizzes[Number(btn.dataset.speakQuiz)].q)}));
  updateLearnProgress();showStage(currentStage||'video',!preserveScroll);
 }
-function answerQuiz(i,j){const m=data.find(x=>x.id===currentId);quizAnswered[i]=j;renderLearn(true);const correct=m.quizzes.filter((q,k)=>quizAnswered[k]===q.answer).length;document.getElementById('learn-feedback').textContent=`クイズ：${correct} / ${Object.keys(quizAnswered).length}問 正解`;updateLearnProgress();}
+function playQuizSound(isCorrect){
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  const ctx=new AudioCtx();
+  const now=ctx.currentTime;
+  const notes=isCorrect?[659.25,783.99,987.77]:[392.00,329.63];
+  notes.forEach((freq,index)=>{
+   const start=now+index*(isCorrect?0.13:0.19);
+   const osc=ctx.createOscillator(),gain=ctx.createGain();
+   osc.type='sine';osc.frequency.setValueAtTime(freq,start);
+   gain.gain.setValueAtTime(0.0001,start);
+   gain.gain.exponentialRampToValueAtTime(isCorrect?0.16:0.11,start+0.025);
+   gain.gain.exponentialRampToValueAtTime(0.0001,start+(isCorrect?0.17:0.23));
+   osc.connect(gain);gain.connect(ctx.destination);
+   osc.start(start);osc.stop(start+(isCorrect?0.18:0.24));
+  });
+  setTimeout(()=>ctx.close().catch(()=>{}),900);
+ }catch(e){/* 音声非対応・再生制限時も回答操作は継続 */}
+}
+function answerQuiz(i,j){const m=data.find(x=>x.id===currentId);if(!m||!m.quizzes[i]||quizAnswered[i]!==undefined)return;const isCorrect=j===m.quizzes[i].answer;quizAnswered[i]=j;playQuizSound(isCorrect);renderLearn(true);const correct=m.quizzes.filter((q,k)=>quizAnswered[k]===q.answer).length;document.getElementById('learn-feedback').textContent=`クイズ：${correct} / ${Object.keys(quizAnswered).length}問 正解`;updateLearnProgress();const result=document.getElementById(`qfeedback-${i}`);if(result){result.classList.remove('quiz-result-pop');void result.offsetWidth;result.classList.add('quiz-result-pop');}}
 function updateLearnProgress(){const m=data.find(x=>x.id===currentId);if(!m)return;const count=document.getElementById('step-count'),bar=document.getElementById('step-bar');if(!count||!bar)return;const total=m.sentences.length+m.quizzes.length,done=m.sentences.length+Object.keys(quizAnswered).length;count.textContent=`${Math.min(done,total)} / ${total}`;bar.style.width=(total?Math.min(done/total,1)*100:0)+'%';}
 document.getElementById('complete-mission').addEventListener('click',()=>{if(!currentId)return;completed[currentId]={date:new Date().toISOString(),score:data.find(x=>x.id===currentId).quizzes.filter((q,i)=>quizAnswered[i]===q.answer).length,total:data.find(x=>x.id===currentId).quizzes.length};saveCompleted();document.getElementById('learn-feedback').textContent='ミッション完了！学習記録に保存しました。';updateLearnProgress();renderHome();renderProgress()});
 function resetForm(){editingId=null;draftSentences=[];draftQuizzes=[];['m-title','m-theme','m-url','m-transcript'].forEach(id=>document.getElementById(id).value='');document.getElementById('m-start').value='00:00';document.getElementById('m-end').value='00:00';document.getElementById('form-message').textContent='';document.getElementById('edit-status').textContent='新規教材';renderEditor()}
