@@ -391,7 +391,7 @@ input,textarea,select{font-size:16px;min-height:48px}
         <button id="add-sentence" class="gold" style="margin-top:10px">＋ 英文を追加</button>
         <div class="divider"></div>
         <label for="q-question">クイズの問題</label><input id="q-question" placeholder="What does orbit mean?">
-        <label for="q-options">選択肢（4つ、| で区切る）</label><input id="q-options" placeholder="軌道|燃料|推力|エンジン">
+        <label for="q-options">選択肢（3つ、| で区切る）</label><input id="q-options" placeholder="軌道|燃料|エンジン">
         <label for="q-answer">正解の選択肢（1〜4）</label><select id="q-answer"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
         <label for="q-explain">解説</label><input id="q-explain" placeholder="orbit は宇宙で天体の周りを回る道筋です。">
         <button id="add-quiz" style="margin-top:10px">＋ クイズを追加</button>
@@ -576,7 +576,7 @@ function editMission(id){const m=data.find(x=>x.id===id);if(!m)return;editingId=
 function renderEditor(){document.getElementById('editor-items').innerHTML=(draftSentences.length||draftQuizzes.length)?draftSentences.map((s,i)=>`<div class="sentence"><div class="row"><b>${esc(s.en)}</b><button class="small" onclick="removeSentence(${i})">削除</button></div><div class="hint">${esc(s.ja)}</div><div class="tiny">${s.words.map(w=>esc(w[0])+'：'+esc(w[1])).join(' / ')}</div></div>`).join('')+draftQuizzes.map((q,i)=>`<div class="sentence"><div class="row"><b>Q${i+1}. ${esc(q.q)}</b><button class="small" onclick="removeQuiz(${i})">削除</button></div><div class="hint">${q.options.map((o,j)=>(j+1)+'. '+esc(o)+(j===q.answer?' ✓':'')).join('　')}</div></div>`).join(''):'<div class="empty">英文やクイズを追加すると、ここに表示されます。</div>'}
 function removeSentence(i){draftSentences.splice(i,1);renderEditor()}function removeQuiz(i){draftQuizzes.splice(i,1);renderEditor()}
 document.getElementById('add-sentence').addEventListener('click',()=>{const en=document.getElementById('s-en').value.trim(),ja=document.getElementById('s-ja').value.trim(),raw=document.getElementById('s-words').value.trim();if(!en||!ja){alert('英文と日本語訳を入力してください。');return}const words=raw?raw.split(',').map(x=>{const p=x.split('=');return[p[0]?.trim()||'',p.slice(1).join('=').trim()||'意味を追加してください']}).filter(x=>x[0]):[];draftSentences.push({en,ja,words});document.getElementById('s-en').value='';document.getElementById('s-ja').value='';document.getElementById('s-words').value='';renderEditor()});
-document.getElementById('add-quiz').addEventListener('click',()=>{const q=document.getElementById('q-question').value.trim(),opts=document.getElementById('q-options').value.split('|').map(x=>x.trim()).filter(Boolean),answer=Number(document.getElementById('q-answer').value)-1,explain=document.getElementById('q-explain').value.trim();if(!q||opts.length!==4){alert('問題と、| で区切った4つの選択肢を入力してください。');return}draftQuizzes.push({q,options:opts,answer,explain});['q-question','q-options','q-explain'].forEach(id=>document.getElementById(id).value='');renderEditor()});
+document.getElementById('add-quiz').addEventListener('click',()=>{const q=document.getElementById('q-question').value.trim(),opts=document.getElementById('q-options').value.split('|').map(x=>x.trim()).filter(Boolean),answer=Number(document.getElementById('q-answer').value)-1,explain=document.getElementById('q-explain').value.trim();if(!q||opts.length!==3){alert('問題と、| で区切った3つの選択肢を入力してください。');return}draftQuizzes.push({q,options:opts,answer,explain});['q-question','q-options','q-explain'].forEach(id=>document.getElementById(id).value='');renderEditor()});
 function saveMission(published){
   const title=document.getElementById('m-title').value.trim(),theme=document.getElementById('m-theme').value.trim(),url=document.getElementById('m-url').value.trim(),start=document.getElementById('m-start').value.trim()||'00:00',end=document.getElementById('m-end').value.trim()||'00:00';
   const msg=document.getElementById('form-message');
@@ -854,13 +854,13 @@ document.getElementById('mission-json-file').addEventListener('change',async(eve
       return {en:s.en,ja:s.ja,words};
     });
     const quizzes=lesson.quizzes.map((q,i)=>{
-      if(!validString(q.q)||!q.q.trim()||!Array.isArray(q.options)||q.options.length!==4)throw new Error(`クイズ${i+1}は問題文と4つの選択肢が必要です。`);
+      if(!validString(q.q)||!q.q.trim()||!Array.isArray(q.options)||q.options.length!==3)throw new Error(`クイズ${i+1}は問題文と3つの選択肢が必要です。`);
       let answer=Number(q.answer);
-      if(!Number.isInteger(answer)||answer<0||answer>3){
-        if(Number.isInteger(answer)&&answer>=1&&answer<=4)answer-=1;
-        else throw new Error(`クイズ${i+1}のanswerは0〜3で指定してください。`);
+      if(!Number.isInteger(answer)||answer<0||answer>2){
+        if(Number.isInteger(answer)&&answer>=1&&answer<=3)answer-=1;
+        else throw new Error(`クイズ${i+1}のanswerは0〜2で指定してください。`);
       }
-      return {q:q.q,options:q.options.map(String),answer,explain:String(q.explain||'')};
+      return {q:q.q,ja:String(q.ja||''),options:q.options.map(String),answer,explain:String(q.explain||'')};
     });
     document.getElementById('m-title').value=lesson.title;
     document.getElementById('m-theme').value=String(lesson.theme||'');
