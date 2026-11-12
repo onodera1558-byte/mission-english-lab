@@ -650,8 +650,10 @@ function getVideoGroups(){
     const themes=[...new Set(g.missions.map(m=>(m.theme||'').trim()).filter(Boolean))];
     const first=g.missions[0];
     g.title=themes.length===1?themes[0]:(themes[0]||first.title||'動画教材');
-    const savedGroupTitle=g.missions.map(m=>(m.groupTitle||'').trim()).find(Boolean);if(savedGroupTitle)g.title=savedGroupTitle;
     if(themes.length>1)g.title=themes[0]+' ほか';
+    // A user-defined group title must take precedence over the automatically derived theme title.
+    const savedGroupTitle=g.missions.map(m=>(m.groupTitle||'').trim()).find(Boolean);
+    if(savedGroupTitle)g.title=savedGroupTitle;
     g.thumbnail=g.missions.find(m=>m.thumbnail)?.thumbnail||'';
     g.done=g.missions.filter(m=>!!completed[m.id]).length;
     g.wordCount=g.missions.reduce((n,m)=>n+missionVocabulary(m).length,0);
