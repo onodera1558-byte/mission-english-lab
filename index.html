@@ -387,8 +387,10 @@ input,textarea,select{font-size:16px;min-height:48px}
 /* One-word-per-page vocabulary study */
 .vocab-page{max-width:620px;margin:0 auto;text-align:center;padding:18px 14px 20px;border:1px solid #dce8ef;border-radius:18px;background:#fbfdff}
 .vocab-page-progress{font-size:.95rem;font-weight:800;color:#547087;margin-bottom:14px}
-.vocab-page-image-wrap{width:100%;max-width:360px;aspect-ratio:4/3;margin:0 auto 18px;border-radius:16px;overflow:hidden;background:#eef4f7;display:grid;place-items:center}
-.vocab-page-image{width:100%;height:100%;object-fit:contain}
+.learning-image-wrap{width:100%;aspect-ratio:1/1;margin:0 auto 18px;border-radius:16px;overflow:hidden;background:#eef4f7;display:grid;place-items:center}
+.learning-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+.vocab-page-image-wrap{max-width:360px}
+.sentence-page-image-wrap{max-width:420px}
 .vocab-page-placeholder{font-size:4rem;color:#8aa2b3}
 .vocab-page-word{font-size:clamp(2rem,8vw,3.2rem);font-weight:850;line-height:1.2;overflow-wrap:anywhere;margin:8px 0}
 .vocab-page-meaning{font-size:1.3rem;font-weight:750;color:#31546b;margin:10px 0 18px}
@@ -397,8 +399,6 @@ input,textarea,select{font-size:16px;min-height:48px}
 .vocab-page-audio{margin:4px auto 0}
 
 .sentence-page,.quiz-page{max-width:680px;margin:0 auto;text-align:center;padding:18px 14px 20px;border:1px solid #dce8ef;border-radius:18px;background:#fbfdff}
-.sentence-page-image-wrap{width:100%;max-width:420px;aspect-ratio:4/3;margin:0 auto 18px;border-radius:16px;overflow:hidden;background:#eef4f7;display:grid;place-items:center}
-.sentence-page-image{width:100%;height:100%;object-fit:contain}
 .sentence-page .sentence-page-en{font-size:clamp(1.35rem,5vw,2rem);font-weight:850;line-height:1.55;margin:12px 0}
 .sentence-page .sentence-page-ja{font-size:1.12rem;font-weight:700;color:#31546b;margin:12px 0}
 .sentence-page-controls,.quiz-page-controls{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:20px}
@@ -814,11 +814,11 @@ function mountYouTubePlayer(videoId,startSeconds,endSeconds,rate){
 function renderVocabPage(words){
  const w=words[currentVocabIndex];if(!w)return;
  const imageHtml=w.image
-   ? `<img class="vocab-page-image" src="${esc(w.image)}" alt="${esc(w.en)} のイラスト" loading="lazy">`
+   ? `<img class="learning-image vocab-page-image" src="${esc(w.image)}" alt="${esc(w.en)} のイラスト" loading="lazy">`
    : '<div class="vocab-page-placeholder" aria-label="画像はありません">🖼️</div>';
  document.getElementById('vocab-list').innerHTML=`<div class="vocab-page">
    <div class="vocab-page-progress">${currentVocabIndex+1} / ${words.length}　単語</div>
-   <div class="vocab-page-image-wrap">${imageHtml}</div>
+   <div class="learning-image-wrap vocab-page-image-wrap">${imageHtml}</div>
    <div class="vocab-page-word">${esc(w.en)}</div>
    <button class="gold audio-icon vocab-page-audio" type="button" id="vocab-page-speak" aria-label="単語を聞く" title="単語を聞く">🔊</button>
    <div class="vocab-page-meaning">${esc(w.ja)}</div>
@@ -839,10 +839,10 @@ function renderSentencePage(sentences){
  const host=document.getElementById('sentence-list');
  const item=sentences[currentSentenceIndex];
  if(!item){host.innerHTML='';return;}
- const image=item.image?`<img class="sentence-page-image" src="${esc(item.image)}" alt="英文のイメージ画像" loading="lazy">`:'<div class="vocab-page-placeholder" aria-label="画像はありません">🖼️</div>';
+ const image=item.image?`<img class="learning-image sentence-page-image" src="${esc(item.image)}" alt="英文のイメージ画像" loading="lazy">`:'<div class="vocab-page-placeholder" aria-label="画像はありません">🖼️</div>';
  host.innerHTML=`<div class="sentence-page">
   <div class="vocab-page-progress">${currentSentenceIndex+1} / ${sentences.length}　英文</div>
-  <div class="sentence-page-image-wrap">${image}</div>
+  <div class="learning-image-wrap sentence-page-image-wrap">${image}</div>
   <div class="row" style="align-items:flex-start;gap:8px;justify-content:center"><button class="gold audio-icon" type="button" id="sentence-page-speak" aria-label="英文を聞く">🔊</button><div class="sentence-page-en">${esc(item.en)}</div></div>
   <details style="margin:12px 0"><summary style="cursor:pointer;font-weight:800;color:#087da3">日本語の意味を確認する</summary><div class="sentence-page-ja">${esc(item.ja)}</div></details>
   ${item.words?.length?`<div style="margin-top:10px">${item.words.map(w=>`<span class="word"><b>${esc(w[0])}</b><span>${esc(w[1])}</span></span>`).join('')}</div>`:''}
