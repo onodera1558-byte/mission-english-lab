@@ -220,7 +220,14 @@ input,textarea,select{font-size:16px;min-height:48px}
 #view-home .video-group-card p{margin:0;color:#55748a;font-size:.92rem;line-height:1.4}
 #view-home .video-group-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:auto}
 #view-home .video-group-meta span{display:inline-flex;padding:5px 9px;border-radius:999px;background:#e8f6fc;border:1px solid #c3e2ef;color:#315b73;font-size:.86rem;font-weight:700}
-#view-group .group-page-head{margin-bottom:20px}
+
+#view-group .mission-edit{color:#17445f!important;background:#e5f4fb!important;border:1px solid #9fc9dc!important;font-weight:700}
+#view-group .mission-edit:hover{color:#10364e!important;background:#cceaf7!important}
+#view-group .group-title-editor{display:flex;align-items:center;gap:10px;max-width:760px;margin:0 0 12px}
+#view-group .group-title-editor input{flex:1;min-width:0;font-size:clamp(1.25rem,3vw,1.8rem);font-weight:800;color:#173b58;background:#fff;border:2px solid #9fc9dc;border-radius:14px;padding:12px 15px}
+#view-group .group-title-editor .primary{flex:0 0 auto;white-space:nowrap}
+@media(max-width:560px){#view-group .group-title-editor{align-items:stretch;flex-direction:column}#view-group .group-title-editor .primary{width:100%}}
+\n#view-group .group-page-head{margin-bottom:20px}
 #view-group .group-page-head .ghost{margin-bottom:18px}
 #view-group .group-mission-card{grid-column:span 6;background:linear-gradient(155deg,#fff,#f2faff);border:2px solid #b9dff0;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;box-shadow:0 5px 0 #c7e4f1}
 #view-group .group-mission-card h3{color:#173b58;overflow-wrap:anywhere}
@@ -419,9 +426,10 @@ input,textarea,select{font-size:16px;min-height:48px}
 
   <section id="view-group" class="hidden">
     <div class="group-page-head">
-      <button class="ghost" type="button" onclick="showView('home')">← ミッション一覧へ戻る</button>
-      <div class="eyebrow">Video Collection</div>
-      <h1 id="group-title">動画教材</h1>
+      <div class="group-title-editor">
+        <input id="group-title-input" aria-label="まとめページのタイトル" maxlength="80" placeholder="まとめページのタイトル">
+        <button type="button" class="primary" id="save-group-title">タイトルを保存</button>
+      </div>
       <p class="sub" id="group-description"></p>
     </div>
     <div id="group-mission-list" class="grid"></div>
@@ -642,6 +650,7 @@ function getVideoGroups(){
     const themes=[...new Set(g.missions.map(m=>(m.theme||'').trim()).filter(Boolean))];
     const first=g.missions[0];
     g.title=themes.length===1?themes[0]:(themes[0]||first.title||'動画教材');
+    const savedGroupTitle=g.missions.map(m=>(m.groupTitle||'').trim()).find(Boolean);if(savedGroupTitle)g.title=savedGroupTitle;
     if(themes.length>1)g.title=themes[0]+' ほか';
     g.thumbnail=g.missions.find(m=>m.thumbnail)?.thumbnail||'';
     g.done=g.missions.filter(m=>!!completed[m.id]).length;
@@ -663,7 +672,7 @@ function renderHome(){
     else if(/earth|地球/.test(title+' '+theme))art='🌍';
     const artValue=g.thumbnail||art;
     const artHtml=artValue.startsWith('data:')?`<img class="video-group-art" src="${artValue}" alt="${esc(g.title)}のサムネイル">`:`<div class="video-group-art" aria-hidden="true" style="display:grid;place-items:center;font-size:2.8rem">${artValue}</div>`;
-    return `<button type="button" class="video-group-card" onclick="openVideoGroup('${g.key}')"><div class="video-group-top">${artHtml}<div><h3>${esc(g.title)}</h3><p>${g.videoId?'同じYouTube動画の教材':'個別教材'}</p></div></div><div class="video-group-meta"><span>📚 ミッション ${g.missions.length}件</span><span>✓ ${g.done}/${g.missions.length} クリア</span><span>🔤 単語 ${g.wordCount}</span></div><span class="badge">まとめページを開く →</span></button>`;
+    return `<button type="button" class="video-group-card" onclick="openVideoGroup('${g.key}')"><div class="video-group-top">${artHtml}<div><h3>${esc(g.title)}</h3></div></div><div class="video-group-meta"><span>📚 ミッション ${g.missions.length}件</span><span>✓ ${g.done}/${g.missions.length} クリア</span><span>🔤 単語 ${g.wordCount}</span></div></button>`;
   }).join('')||'<div class="empty span12">教材がありません。保護者画面で作成してください。</div>';
   document.getElementById('stat-total').textContent=groups.reduce((n,g)=>n+g.missions.length,0);
   document.getElementById('stat-done').textContent=groups.reduce((n,g)=>n+g.done,0);
@@ -673,7 +682,7 @@ function openVideoGroup(key){currentGroupKey=key;showView('group');renderVideoGr
 function renderVideoGroup(){
   const group=getVideoGroups().find(g=>g.key===currentGroupKey);
   if(!group){showView('home');return;}
-  document.getElementById('group-title').textContent=group.title;
+  document.getElementById('group-title-input').value=group.title;
   document.getElementById('group-description').textContent=`この動画に関連するミッション：${group.missions.length}件（クリア ${group.done}件）`;
   const list=document.getElementById('group-mission-list');
   list.innerHTML=group.missions.map(m=>{
@@ -681,6 +690,16 @@ function renderVideoGroup(){
     return `<article class="group-mission-card"><div><h3>${esc(m.title)}</h3><p>${esc(m.theme||'サイエンス・ミッション')}</p></div><span class="badge ${done?'done':''}">${done?'✓ クリア済み':'● 未挑戦'}</span><div class="mission-meta"><span>📖 英文 ${m.sentences.length}</span><span>🔤 単語 ${words}</span><span>⭐ クイズ ${m.quizzes.length}問</span></div><div class="group-mission-actions"><button class="primary" onclick="startLearn('${m.id}')">${done?'もう一度学ぶ':'ミッション開始'} →</button><button class="mission-edit" onclick="editMission('${m.id}')">編集</button></div></article>`;
   }).join('')||'<div class="empty span12">このグループに教材がありません。</div>';
 }
+function saveVideoGroupTitle(){
+  const group=getVideoGroups().find(g=>g.key===currentGroupKey);
+  const input=document.getElementById('group-title-input');
+  const title=(input.value||'').trim();
+  if(!group||!title){alert('タイトルを入力してください。');return;}
+  group.missions.forEach(m=>{m.groupTitle=title;});
+  persist();
+  renderVideoGroup();
+}
+document.getElementById('save-group-title').addEventListener('click',saveVideoGroupTitle);
 function startLearn(id){currentId=id;quizAnswered={};currentStage='video';showView('learn');renderLearn()}
 let currentStage='video';
 const stageInfo={video:{heading:'STEP 1：まずは動画を見よう！',instruction:'映像を見て、何が起きているか考えてみよう。'},vocab:{heading:'STEP 2：大事な単語をチェック！',instruction:'単語の意味と発音を確認しよう。'},sentences:{heading:'STEP 3：英文と意味を読もう！',instruction:'英文を聞いて、自分で意味を考えてから和訳を確認しよう。'},quiz:{heading:'STEP 4：クイズに挑戦！',instruction:'学んだ単語と英文を思い出して答えよう。'}};
@@ -903,8 +922,8 @@ const CLOUD_CONFIG_KEY='missionEnglishLab.supabaseConfig.v1';
 function cloudConfig(){try{return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'{}')}catch(e){return {}}}
 function setCloudMessage(t){document.getElementById('cloud-message').textContent=t}
 function showCloudPanel(){const c=cloudConfig();document.getElementById('cloud-url').value=c.url||'';document.getElementById('cloud-key').value=c.key||'';document.getElementById('cloud-panel').style.display='grid'}
-function cloudMissionToRow(m){return {id:m.id,title:m.title,theme:m.theme||'',youtube_url:m.url||'',start_time:m.start||'00:00',end_time:m.end||'00:00',content:{sentences:m.sentences||[],vocabulary:m.vocabulary||[],quizzes:m.quizzes||[],transcript:m.transcript||'',thumbnail:m.thumbnail||'',playbackRate:m.playbackRate||1,published:!!m.published},updated_at:new Date().toISOString()}}
-function cloudRowToMission(r){const c=r.content||{};return {id:r.id,title:r.title,theme:r.theme||'',url:r.youtube_url||'',start:r.start_time||'00:00',end:r.end_time||'00:00',transcript:c.transcript||'',thumbnail:c.thumbnail||'',playbackRate:Number(c.playbackRate)||1,published:c.published!==false,sentences:Array.isArray(c.sentences)?c.sentences:[],vocabulary:Array.isArray(c.vocabulary)?c.vocabulary:[],quizzes:Array.isArray(c.quizzes)?c.quizzes:[],cloud:true}}
+function cloudMissionToRow(m){return {id:m.id,title:m.title,theme:m.theme||'',youtube_url:m.url||'',start_time:m.start||'00:00',end_time:m.end||'00:00',content:{sentences:m.sentences||[],vocabulary:m.vocabulary||[],quizzes:m.quizzes||[],transcript:m.transcript||'',thumbnail:m.thumbnail||'',playbackRate:m.playbackRate||1,groupTitle:m.groupTitle||'',published:!!m.published},updated_at:new Date().toISOString()}}
+function cloudRowToMission(r){const c=r.content||{};return {id:r.id,title:r.title,theme:r.theme||'',url:r.youtube_url||'',start:r.start_time||'00:00',end:r.end_time||'00:00',transcript:c.transcript||'',thumbnail:c.thumbnail||'',playbackRate:Number(c.playbackRate)||1,groupTitle:c.groupTitle||'',published:c.published!==false,sentences:Array.isArray(c.sentences)?c.sentences:[],vocabulary:Array.isArray(c.vocabulary)?c.vocabulary:[],quizzes:Array.isArray(c.quizzes)?c.quizzes:[],cloud:true}}
 async function syncCloudMissions(preferCloud=false){
   if(!cloudClient)return;
   const authResult=await cloudClient.auth.getUser();
